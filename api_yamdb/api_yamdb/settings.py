@@ -21,8 +21,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",
     "users",
-    'api',
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -109,3 +111,7 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
