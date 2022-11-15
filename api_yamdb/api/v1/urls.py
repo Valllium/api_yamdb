@@ -11,7 +11,7 @@ from .views import UserViewSet
 app_name = "api"
 
 router = DefaultRouter()
-router.register(r'user', UserViewSet)
+router.register(r'users', UserViewSet)
 # router.register(r"posts", PostViewSet)
 # router.register(r"groups", GroupViewSet)
 # router.register(
