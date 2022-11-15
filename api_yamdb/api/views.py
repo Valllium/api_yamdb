@@ -27,7 +27,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     # Нужно, скорее всего, вставить в TitleViewSet:
     def get_avg_rating(self):
-        return Review.objects.filter(id=self.id).aggregate(Avg('review__score'))
+        return Review.objects.filter(title_id=self.title_id).aggregate(Avg('review__score'))
 
 
 class CommentViewSet(viewsets.ModelViewSet):
