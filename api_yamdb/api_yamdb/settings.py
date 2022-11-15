@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "users",
     "api",
+    "core",
+    "reviews"
 ]
 
 MIDDLEWARE = [
@@ -114,4 +116,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }

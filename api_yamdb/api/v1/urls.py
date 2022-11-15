@@ -1,26 +1,18 @@
-"""
-Модуль определения публикуемых страниц.
-"""
 from django.urls import include, path
-from rest_framework.authtoken import views
 from rest_framework.routers import DefaultRouter
 
-# from .views import CommentViewSet, FollowViewSet, GroupViewSet, PostViewSet
+from .views import CategoryViewSet, GenreViewSet, TitleViewSet
 
-app_name = "api"
+v1_router = DefaultRouter()
 
-router = DefaultRouter()
-# router.register(r"posts", PostViewSet)
-# router.register(r"groups", GroupViewSet)
-# router.register(
-#    r"posts/(?P<id>\d+)/comments", CommentViewSet, basename="comment"
-# )
-# router.register(r"follow", FollowViewSet, basename="follow")
-
-
+v1_router.register(r'genres',
+                   GenreViewSet,
+                   basename='genres')
+v1_router.register(r'categories',
+                   CategoryViewSet,
+                   basename='categories')
+v1_router.register(r'titles',
+                   TitleViewSet,
+                   basename='titles')
 urlpatterns = [
-    path("", include(router.urls)),
-    #     path("api-token-auth/", views.obtain_auth_token),
-    #     path("", include("djoser.urls")),
-    #     path("", include("djoser.urls.jwt")),
-]
+    path("", include(v1_router.urls))]
