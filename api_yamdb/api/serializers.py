@@ -14,7 +14,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-        fields = '__all__'
+        fields = ('user', 'title', 'text', 'score')
         model = Review
 
 
@@ -26,5 +26,5 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        fields = ('author', 'review', 'text')
         model = Comment

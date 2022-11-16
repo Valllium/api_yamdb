@@ -1,9 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from rest_framework import viewsets
-# Пока просто оставила пермишены из предыдущего спринта для удобства:
-from rest_framework.permissions import (IsAuthenticated, AllowAny,
-                                        IsAuthenticatedOrReadOnly)
+# from rest_framework.permissions import (IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly)
 from rest_framework.pagination import LimitOffsetPagination
 
 from reviews.models import Review, Title
@@ -12,7 +10,7 @@ from .serializers import (CommentSerializer, ReviewSerializer)
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (AuthorOrReadOnly, IsAuthenticatedOrReadOnly,)
+    #permission_classes = (AuthorOrReadOnly, IsAuthenticatedOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -32,7 +30,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AuthorOrReadOnly, IsAuthenticatedOrReadOnly,)
+    #permission_classes = (AuthorOrReadOnly, IsAuthenticatedOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):

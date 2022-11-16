@@ -17,8 +17,8 @@ class Review(models.Model):
     score = models.IntegerField(default=0, choices=CHOICES)
 
     class Meta:
-        verbose_name = 'review'
-        verbose_name_plural = 'reviews'
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         unique_together = ('user', 'title',)
 
 
@@ -30,5 +30,5 @@ class Comment(models.Model):
     text = models.TextField()
 
     class Meta:
-        verbose_name = 'comment'
-        verbose_name_plural = 'comments'
+        verbose_name = 'Коментарий'
+        verbose_name_plural = 'Коментарии'
