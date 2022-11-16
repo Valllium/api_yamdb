@@ -2,13 +2,10 @@
 Модуль определения сериализаторов.
 """
 from rest_framework import serializers
-
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, ValidationError
-
 # from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import CHOICES, Comment, Review
-
 # from django.conf import settings
 from users.models import User
 

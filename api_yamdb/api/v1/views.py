@@ -4,20 +4,18 @@
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-
-# from rest_framework.permissions import (IsAuthenticated, AllowAny, IsAuthenticatedOrReadOnly)
+# from rest_framework.permissions import (
+# IsAuthenticated,
+# AllowAny,
+# IsAuthenticatedOrReadOnly,)
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ModelViewSet
 from reviews.models import Review, Title
 from users.models import User
 
-from .serializers import (
-    CommentSerializer,
-    ReviewSerializer,
-    UserSerializer,
-    UserSignupSerizlizer,
-)
+from .serializers import (CommentSerializer, ReviewSerializer, UserSerializer,
+                          UserSignupSerizlizer)
 from .viewsets import SignupViewSet
 
 

@@ -52,7 +52,7 @@ class User(AbstractUser):
     bio = models.TextField(_("Биография"), max_length=256, blank=True)
     role = models.CharField(max_length=10, choices=USER_ROLES, default="USER")
 
-    ##USERNAME_FIELD = 'username' # Идентификатор для обращения
+    # USERNAME_FIELD = 'username' # Идентификатор для обращения
     REQUIRED_FIELDS = ["email"]  # Список имён полей для Superuser
 
     objects = UserManager()
