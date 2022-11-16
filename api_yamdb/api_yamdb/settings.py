@@ -116,3 +116,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
