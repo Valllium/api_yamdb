@@ -1,6 +1,3 @@
-"""
-Модуль определения публикуемых страниц.
-"""
 from django.urls import include, path
 
 urlpatterns = [
