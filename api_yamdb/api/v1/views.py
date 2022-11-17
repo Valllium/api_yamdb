@@ -1,7 +1,6 @@
 """
 Модуль определения представлений.
 """
-from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -29,6 +28,7 @@ from .serializers import (
     UserSignupSerizlizer,
 )
 from .viewsets import SignupViewSet
+from django.core.mail import send_mail
 
 
 class UserViewSet(ModelViewSet):
@@ -51,8 +51,8 @@ class CreateUserAPIView(ModelViewSet):
     def perform_create(self, serializer):
         created_object = serializer.save()
         send_mail(
-            "Subject here",
-            "Here is the message.",
+            "Подтверждение почты",
+            "тут будет функция с ссылкой",
             "from@example.com",
             [created_object.email],
             fail_silently=False,
