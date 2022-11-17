@@ -1,3 +1,70 @@
+"""
+Модуль определения сериализаторов.
+"""
+from datetime import datetime
+
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
+from django.utils.translation import gettext as _
+# from rest_framework.relations import SlugRelatedField
+from rest_framework.serializers import ModelSerializer, ValidationError
+from reviews.models import CHOICES, Comment, Review, Category, Genre, Title
+from users.models import User
+
+
+class UserSerializer(ModelSerializer):
+    """Сериализатор пользователя."""
+
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "bio",
+            "role",
+        )
+
+
+class UserSignupSerizlizer(ModelSerializer):
+    """Сериализатор регистрации."""
+
+    def validate_username(self, attrs):
+        """Метод валидации пользователя."""
+
+        if attrs == "me":
+            raise ValidationError("Попробуй другой username")
+        return attrs
+
+    class Meta:
+        model = User
+        fields = ("username", "email")
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        read_only=True,
+        slug_field="username",
+    )
+    score = serializers.ChoiceField(choices=CHOICES)
+
+    class Meta:
+        fields = ("user", "title", "text", "score")
+        model = Review
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        read_only=True,
+        slug_field="username",
+    )
+
+    class Meta:
+        fields = ("author", "review", "text")
+        model = Comment
 from datetime import datetime
 
 from rest_framework import serializers
