@@ -23,7 +23,7 @@ router = DefaultRouter()
 auth_router = DefaultRouter()
 
 router.register(r"users", UserViewSet)
-#router.register(r"users/me", ChangeSelfAPIView)
+# router.register(r"users/me", ChangeSelfAPIView)
 # router.register(r'^create/$', CreateUserAPIView, basename='create')
 
 router.register(

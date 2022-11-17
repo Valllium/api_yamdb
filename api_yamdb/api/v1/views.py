@@ -1,6 +1,7 @@
 """
 Модуль определения представлений.
 """
+from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -28,7 +29,6 @@ from .serializers import (
     UserSignupSerizlizer,
 )
 from .viewsets import SignupViewSet
-from django.core.mail import send_mail
 
 
 class UserViewSet(ModelViewSet):
@@ -37,31 +37,36 @@ class UserViewSet(ModelViewSet):
     lookup_field = "username"
 
     if lookup_field == "me":
+
         def get_queryset(self):
             return User.objects.get(username=self)
+
 
 class CreateUserAPIView(ModelViewSet):
     #    permission_classes = (AllowAny,)
     http_method_names = ["post"]
     queryset = User.objects.all()
     serializer_class = UserSignupSerizlizer
-    
+
     def perform_create(self, serializer):
         created_object = serializer.save()
-        send_mail('Subject here', 'Here is the message.', 'from@example.com',
-            [created_object.email], fail_silently=False,)
-        
-    
-    
-#class ChangeSelfAPIView(ModelViewSet):
+        send_mail(
+            "Subject here",
+            "Here is the message.",
+            "from@example.com",
+            [created_object.email],
+            fail_silently=False,
+        )
+
+
+# class ChangeSelfAPIView(ModelViewSet):
 #    http_method_names = ["PATCH"]
-    # queryset = User.objects.all()
+# queryset = User.objects.all()
 #    serializer_class = UserSerializer
-    #permission_classes = [IsAccountAdminOrReadOnly]
-    
+# permission_classes = [IsAccountAdminOrReadOnly]
+
 #    def get_queryset(self):
 #        return self.request.user
-    
 
 
 #    def post(self):
