@@ -88,6 +88,8 @@ class Review(models.Model):
         Title, on_delete=models.CASCADE, related_name="reviews"
     )
     text = models.TextField()
+    created = models.DateTimeField(
+        'Дата создания отзыва', auto_now_add=True, db_index=True)
     score = models.IntegerField(default=0, choices=CHOICES)
 
     class Meta:
@@ -107,6 +109,8 @@ class Comment(models.Model):
         Review, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField()
+    created = models.DateTimeField(
+        'Дата комментария к отзыву', auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name = "Коментарий"

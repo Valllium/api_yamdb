@@ -53,7 +53,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-        fields = ("user", "title", "text", "score")
+        fields = ("user", "title", "text", "created", "score",)
         model = Review
 
 
@@ -65,7 +65,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("author", "review", "text")
+        fields = ("author", "review", "text", "created",)
         model = Comment
 
 
