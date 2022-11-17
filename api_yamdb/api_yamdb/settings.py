@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     "api",
     "reviews",
     "core",
-    "reviews"
 ]
 
 MIDDLEWARE = [
@@ -72,7 +71,7 @@ DATABASES = {
     }
 }
 
-
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Password validation
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -129,5 +128,5 @@ REST_FRAMEWORK = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination"
 }

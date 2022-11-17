@@ -3,25 +3,31 @@
 """
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
+from rest_framework.filters import OrderingFilter, SearchFilter
+
 # from rest_framework.permissions import (
 # IsAuthenticated,
 # AllowAny,
 # IsAuthenticatedOrReadOnly,)
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny
-from rest_framework.viewsets import ModelViewSet
-from users.models import User
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.viewsets import ModelViewSet
+from reviews.models import Category, Genre, Review, Title
+from users.models import User
 
-from .serializers import (CommentSerializer, ReviewSerializer, UserSerializer,
-                          UserSignupSerizlizer, CategorySerializer, GenreSerializer, TitleSerializer)
+from .serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleSerializer,
+    UserSerializer,
+    UserSignupSerizlizer,
+)
 from .viewsets import SignupViewSet
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.permissions import IsAdminUser
-from reviews.models import Category, Genre, Title, Review
 
 
 class UserViewSet(ModelViewSet):
@@ -29,17 +35,32 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
 
 
-class CreateUserAPIView(SignupViewSet):
-    permission_classes = (AllowAny,)
+class CreateUserAPIView(ModelViewSet):
+    #    permission_classes = (AllowAny,)
+    http_method_names = ["post"]
+    queryset = User.objects.all()
+    serializer_class = UserSignupSerizlizer
 
-    def post(self, request):
-        # email = request.data["email"]
-        # if
-        user = request.data
-        serializer = UserSignupSerizlizer(data=user)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+#    def post(self):
+#        user = request.data
+#        serializer = UserSignupSerizlizer(data=user)
+#        serializer.is_valid(raise_exception=True)
+#        serializer.save()
+#        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# class CreateUserAPIView(SignupViewSet):
+#    permission_classes = (AllowAny,)
+
+#    def post(self, request):
+# email = request.data["email"]
+# if
+#        user = request.data
+#        serializer = UserSignupSerizlizer(data=user)
+#        serializer.is_valid(raise_exception=True)
+#        serializer.save()
+#        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # class CreateUserAPIView(PostOnlyViewSet):
@@ -95,32 +116,35 @@ class CommentViewSet(viewsets.ModelViewSet):
 class GenreViewSet(viewsets.ModelViewSet):
     """ViewSet для эндпойнта /genre/
     c пагинацией и поиском по полю name"""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
-    search_fields = ('name',)
+    search_fields = ("name",)
     permission_classes = [IsAdminUser]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     """ViewSet для эндпойнта /Category/
     c пагинацией и поиском по полю name"""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
-    search_fields = ('name',)
+    search_fields = ("name",)
     permission_classes = [IsAdminUser]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet для эндпойнта /Title/
     c пагинацией и фильтрацией  по всем полям"""
+
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_fields = ('name', 'year', 'genre__slug', 'category__slug')
-    ordering_fields = ('name', 'year')
+    filterset_fields = ("name", "year", "genre__slug", "category__slug")
+    ordering_fields = ("name", "year")
