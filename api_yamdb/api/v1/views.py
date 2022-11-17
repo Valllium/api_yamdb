@@ -3,7 +3,7 @@
 """
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
+# from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
@@ -28,11 +28,18 @@ from .serializers import (
     UserSignupSerizlizer,
 )
 from .viewsets import SignupViewSet
+from django.core.mail import send_mail
 
 
 class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    lookup_field = "username"
+
+    if lookup_field == "me":
+
+        def get_queryset(self):
+            return User.objects.get(username=self)
 
 
 class CreateUserAPIView(ModelViewSet):
@@ -40,6 +47,26 @@ class CreateUserAPIView(ModelViewSet):
     http_method_names = ["post"]
     queryset = User.objects.all()
     serializer_class = UserSignupSerizlizer
+
+    def perform_create(self, serializer):
+        created_object = serializer.save()
+        send_mail(
+            "Подтверждение почты",
+            "тут будет функция с ссылкой",
+            "from@example.com",
+            [created_object.email],
+            fail_silently=False,
+        )
+
+
+# class ChangeSelfAPIView(ModelViewSet):
+#    http_method_names = ["PATCH"]
+# queryset = User.objects.all()
+#    serializer_class = UserSerializer
+# permission_classes = [IsAccountAdminOrReadOnly]
+
+#    def get_queryset(self):
+#        return self.request.user
 
 
 #    def post(self):
@@ -122,7 +149,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
     search_fields = ("name",)
-    permission_classes = [IsAdminUser]
+#    permission_classes = [IsAdminUser]
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -144,7 +171,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
-    permission_classes = [IsAdminUser]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+#    permission_classes = [IsAdminUser]
+#    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ("name", "year", "genre__slug", "category__slug")
     ordering_fields = ("name", "year")
