@@ -41,10 +41,7 @@ class Title(models.Model):
             MaxValueValidator(
                 datetime.now().year, message=_("Такой год еще не наступил!")
             ),
-            MinValueValidator(1000, message=_("Слишком ранняя дата!")),
-            RegexValidator(
-                regex="^/d{4}$", message=_("Введите год в формате YYYY!")
-            ),
+            MinValueValidator(1000, message=_("Слишком ранняя дата!"))
         ],
     )
     category = models.ForeignKey(
@@ -54,11 +51,11 @@ class Title(models.Model):
         on_delete=models.SET_NULL,
         related_name="titles",
     )
-    genres = models.ManyToManyField(Genre, through="GenreTitle")
+    genre = models.ManyToManyField(Genre, through="GenreTitle")
 
     class Meta:
-        verbose_name = "Title"
-        verbose_name_plural = "Titles"
+        verbose_name = _("Произведение")
+        verbose_name_plural = _("Произведения")
         ordering = ["name", "year"]
         constraints = [
             models.UniqueConstraint(
@@ -109,5 +106,5 @@ class Comment(models.Model):
     text = models.TextField()
 
     class Meta:
-        verbose_name = "Коментарий"
-        verbose_name_plural = "Коментарии"
+        verbose_name = _("Коментарий")
+        verbose_name_plural = _("Коментарии")

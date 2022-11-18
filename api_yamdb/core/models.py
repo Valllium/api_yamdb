@@ -9,7 +9,7 @@ class CreatedModel(models.Model):
     slug = models.SlugField(unique=True, validators=[validate_slug])
 
     def __str__(self):
-        return self.name
+        return self.slug
 
     class Meta:
         ordering = ["name"]

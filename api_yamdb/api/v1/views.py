@@ -3,7 +3,7 @@
 """
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-# from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 
@@ -146,7 +146,8 @@ class GenreViewSet(viewsets.ModelViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    pagination_class = LimitOffsetPagination
+    lookup_field = "slug"
+    #pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
     search_fields = ("name",)
 #    permission_classes = [IsAdminUser]
@@ -158,10 +159,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    pagination_class = LimitOffsetPagination
+    lookup_field = "slug"
+    #pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
     search_fields = ("name",)
-    permission_classes = [IsAdminUser]
+   # permission_classes = [IsAdminUser]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -172,6 +174,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
 #    permission_classes = [IsAdminUser]
-#    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ("name", "year", "genre__slug", "category__slug")
     ordering_fields = ("name", "year")
+
