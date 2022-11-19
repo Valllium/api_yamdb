@@ -9,12 +9,13 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoryViewSet,
-    CommentViewSet,
+    CommentViewSet,  # TakeTokenView,
     CreateUserAPIView,
     GenreViewSet,
     ReviewViewSet,
     TitleViewSet,
     UserViewSet,
+    get_token,
 )
 
 app_name = "api"
@@ -22,7 +23,7 @@ app_name = "api"
 router = DefaultRouter()
 auth_router = DefaultRouter()
 
-router.register(r"users", UserViewSet)
+router.register(r"users", UserViewSet, basename="users")
 # router.register(r"users/me", ChangeSelfAPIView)
 # router.register(r'^create/$', CreateUserAPIView, basename='create')
 
@@ -38,7 +39,15 @@ router.register(r"genres", GenreViewSet, basename="genres")
 router.register(r"categories", CategoryViewSet, basename="categories")
 router.register(r"titles", TitleViewSet, basename="titles")
 auth_router.register(r"signup", CreateUserAPIView, basename="signup")
+# auth_router.register(r"token", TakeTokenView, basename='token')
+
+token = [
+    path("", get_token),
+]
+
+
 urlpatterns = [
     path("", include(router.urls)),
     path("auth/", include(auth_router.urls)),
+    path("auth/token/", include(token)),
 ]

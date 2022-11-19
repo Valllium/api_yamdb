@@ -10,16 +10,16 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 # from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-# from rest_framework.permissions import (
-# IsAuthenticated,
-# AllowAny,
 # IsAuthenticatedOrReadOnly,)
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -34,12 +34,15 @@ from .serializers import (
     UserTokenReceivingSerializer,
 )
 
+# IsAuthenticated,
+
 
 def confirmation_code(self):
     user = get_object_or_404(User, username=self)
     uid = urlsafe_base64_encode(force_bytes(user))
-    token = default_token_generator.make_token(user)
-    return f"http://127.0.0.1:8000/api/v1/auth/token/{uid}/{token}/"
+    code = default_token_generator.make_token(user)
+    # return f"http://127.0.0.1:8000/api/v1/auth/token/{uid}/{token}/"
+    return code
 
 
 class UserViewSet(ModelViewSet):
@@ -54,7 +57,7 @@ class UserViewSet(ModelViewSet):
 
 
 class CreateUserAPIView(ModelViewSet):
-    #    permission_classes = (AllowAny,)
+    permission_classes = (AllowAny,)
     http_method_names = ["post"]
     queryset = User.objects.all()
     serializer_class = UserSignupSerializer
@@ -63,31 +66,24 @@ class CreateUserAPIView(ModelViewSet):
         created_object = serializer.save()
         send_mail(
             "Подтверждение почты",
-            f"{confirmation_code(created_object.username)} ссылка для авторизации",
+            f"Ваш код подтверждения для авторизации{confirmation_code(created_object.username)}",
             "from@example.com",
             [created_object.email],
             fail_silently=False,
         )
 
 
-# class APIToken(APIView):
-#    """Выдача токена"""
-#    permission_classes = (AllowAny, )
-
-#    def post(self, request):
-#        serializer = TokenSerializer(data=request.data)
-#        if serializer.is_valid(raise_exception=True):
-#            user = get_object_or_404(
-#                User, username=serializer.data['username'])
-#            # проверяем confirmation code, если верный, выдаем токен
-#            if default_token_generator.check_token(
-#               user, serializer.data['confirmation_code']):
-#                token = AccessToken.for_user(user)
-#                return Response(
-#                    {'token': str(token)}, status=status.HTTP_200_OK)
-#            return Response({
-#                'confirmation code': 'Некорректный код подтверждения!'},
-#                status=status.HTTP_400_BAD_REQUEST)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_token(request):
+    serializer = UserTokenReceivingSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(User, username=serializer.data["username"])
+    confirmation_code = serializer.data["confirmation_code"]
+    if not default_token_generator.check_token(user, confirmation_code):
+        return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
+    token = RefreshToken.for_user(user).access_token
+    return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
