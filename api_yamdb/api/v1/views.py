@@ -5,10 +5,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
-# from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -130,7 +129,8 @@ class GenreViewSet(viewsets.ModelViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    pagination_class = LimitOffsetPagination
+    lookup_field = "slug"
+    #pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
     search_fields = ("name",)
 
@@ -144,10 +144,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    pagination_class = LimitOffsetPagination
+    lookup_field = "slug"
+    #pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
     search_fields = ("name",)
-    permission_classes = [IsAdminUser]
+   # permission_classes = [IsAdminUser]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -157,7 +158,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     #    permission_classes = [IsAdminUser]
-    #    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ("name", "year", "genre__slug", "category__slug")
     ordering_fields = ("name", "year")
+
