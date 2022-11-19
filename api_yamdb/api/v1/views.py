@@ -1,20 +1,24 @@
 """
 Модуль определения представлений.
 """
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+
 from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-# from rest_framework.permissions import (
-# IsAuthenticated,
-# AllowAny,
 # IsAuthenticatedOrReadOnly,)
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -25,10 +29,19 @@ from .serializers import (
     ReviewSerializer,
     TitleSerializer,
     UserSerializer,
-    UserSignupSerizlizer,
+    UserSignupSerializer,
+    UserTokenReceivingSerializer,
 )
-from .viewsets import SignupViewSet
-from django.core.mail import send_mail
+
+# IsAuthenticated,
+
+
+def confirmation_code(self):
+    user = get_object_or_404(User, username=self)
+    uid = urlsafe_base64_encode(force_bytes(user))
+    code = default_token_generator.make_token(user)
+    # return f"http://127.0.0.1:8000/api/v1/auth/token/{uid}/{token}/"
+    return code
 
 
 class UserViewSet(ModelViewSet):
@@ -43,63 +56,33 @@ class UserViewSet(ModelViewSet):
 
 
 class CreateUserAPIView(ModelViewSet):
-    #    permission_classes = (AllowAny,)
+    permission_classes = (AllowAny,)
     http_method_names = ["post"]
     queryset = User.objects.all()
-    serializer_class = UserSignupSerizlizer
+    serializer_class = UserSignupSerializer
 
     def perform_create(self, serializer):
         created_object = serializer.save()
         send_mail(
             "Подтверждение почты",
-            "тут будет функция с ссылкой",
+            f"Ваш код подтверждения для авторизации{confirmation_code(created_object.username)}",
             "from@example.com",
             [created_object.email],
             fail_silently=False,
         )
 
 
-# class ChangeSelfAPIView(ModelViewSet):
-#    http_method_names = ["PATCH"]
-# queryset = User.objects.all()
-#    serializer_class = UserSerializer
-# permission_classes = [IsAccountAdminOrReadOnly]
-
-#    def get_queryset(self):
-#        return self.request.user
-
-
-#    def post(self):
-#        user = request.data
-#        serializer = UserSignupSerizlizer(data=user)
-#        serializer.is_valid(raise_exception=True)
-#        serializer.save()
-#        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-# class CreateUserAPIView(SignupViewSet):
-#    permission_classes = (AllowAny,)
-
-#    def post(self, request):
-# email = request.data["email"]
-# if
-#        user = request.data
-#        serializer = UserSignupSerizlizer(data=user)
-#        serializer.is_valid(raise_exception=True)
-#        serializer.save()
-#        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-# class CreateUserAPIView(PostOnlyViewSet):
-# Allow any user (authenticated or not) to access this url
-#    permission_classes = (AllowAny,)
-
-#    def post(self, request):
-#        user = request.data
-#        serializer = UserSerializer(data=user)
-#        serializer.is_valid(raise_exception=True)
-#        serializer.save()
-#        return Response(serializer.data, status=status.HTTP_201_CREATED)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_token(request):
+    serializer = UserTokenReceivingSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(User, username=serializer.data["username"])
+    confirmation_code = serializer.data["confirmation_code"]
+    if not default_token_generator.check_token(user, confirmation_code):
+        return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
+    token = RefreshToken.for_user(user).access_token
+    return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -150,6 +133,8 @@ class GenreViewSet(viewsets.ModelViewSet):
     #pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
     search_fields = ("name",)
+
+
 #    permission_classes = [IsAdminUser]
 
 
@@ -173,8 +158,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     pagination_class = LimitOffsetPagination
-#    permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
+    #    permission_classes = [IsAdminUser]
     filterset_fields = ("name", "year", "genre__slug", "category__slug")
     ordering_fields = ("name", "year")
 

@@ -27,11 +27,10 @@ class UserSerializer(ModelSerializer):
             "last_name",
             "bio",
             "role",
-            "is_active",  # Проверка формы
         )
 
 
-class UserSignupSerizlizer(ModelSerializer):
+class UserSignupSerializer(ModelSerializer):
     """Сериализатор регистрации."""
 
     def validate_username(self, attrs):
@@ -44,6 +43,24 @@ class UserSignupSerizlizer(ModelSerializer):
     class Meta:
         model = User
         fields = ("username", "email")
+
+
+class UserTokenReceivingSerializer(ModelSerializer):
+    """Сериализатор выдачи токена"""
+
+    confirmation_code = serializers.CharField(max_length=200, required=True)
+    username = serializers.CharField(max_length=200, required=True)
+
+    def validate_username(self, attrs):
+        if not User.objects.filter(username=attrs).exists():
+            raise ValidationError(
+                "Пользователь не сужествует, зарегистрируйтесь!"
+            )
+        return attrs
+
+    class Meta:
+        model = User
+        fields = ("username", "confirmation_code")
 
 
 class ReviewSerializer(serializers.ModelSerializer):
