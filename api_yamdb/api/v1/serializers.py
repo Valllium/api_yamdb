@@ -72,7 +72,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-        fields = ("user", "title", "text", "created", "score",)
+        fields = ("author", "title", "text", "pub_date", "score",)
         model = Review
 
 
@@ -84,7 +84,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("author", "review", "text", "created",)
+        fields = ("author", "review", "text", "pub_date",)
         model = Comment
 
 
@@ -111,12 +111,12 @@ class TitleSerializer(serializers.ModelSerializer):
 
     genre = serializers.SlugRelatedField(slug_field="slug", many=True, queryset=Genre.objects.all())
     category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
-    description = serializers.CharField(max_length=400, required=False)
     rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        fields = ("name", "year", "category", "genre", "description", "rating")
+        fields = ("id", "name", "year", "category", "genre", "description", "rating")
         model = Title
+        #extra_kwargs = {'rating': {'decimal_places': 1}}
         validators = [
             UniqueTogetherValidator(
                 queryset=Title.objects.all(), fields=("name", "category"))]
@@ -128,7 +128,7 @@ class TitleSerializer(serializers.ModelSerializer):
     def validate_year(self, value):
         """Проверка года создания произведения
         (диапозон 1000 до настоящего года)"""
-        current_year = datetime.datetime.today().year
+        current_year = int(datetime.datetime.today().year)
         if not (1000 < value <= current_year):
             raise serializers.ValidationError(_("Проверьте год создания!"))
         return value
