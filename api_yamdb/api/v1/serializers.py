@@ -71,7 +71,17 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
+<<<<<<< HEAD
         fields = ("author", "title", "text", "pub_date", "score",)
+=======
+        fields = (
+            "user",
+            "title",
+            "text",
+            "created",
+            "score",
+        )
+>>>>>>> 74fed97 (Добавлены права доступа)
         model = Review
 
 
@@ -83,7 +93,16 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
+<<<<<<< HEAD
         fields = ("author", "review", "text", "pub_date",)
+=======
+        fields = (
+            "author",
+            "review",
+            "text",
+            "created",
+        )
+>>>>>>> 74fed97 (Добавлены права доступа)
         model = Comment
 
 
@@ -107,8 +126,12 @@ class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title c валидацией введенного
     года и проверкой уникальности произведение-категория"""
 
-    genre = serializers.SlugRelatedField(slug_field="slug", many=True, queryset=Genre.objects.all())
-    category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
+    genre = serializers.SlugRelatedField(
+        slug_field="slug", many=True, queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="slug", queryset=Category.objects.all()
+    )
     description = serializers.CharField(max_length=400, required=False)
     rating = serializers.SerializerMethodField(read_only=True)
 
@@ -124,7 +147,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         """Расчет средней score для произведения"""
-        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
+        return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
 
     def validate_year(self, value):
         """Проверка года создания произведения
