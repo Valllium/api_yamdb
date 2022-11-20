@@ -29,8 +29,13 @@ class User(AbstractUser):
     bio = models.TextField(_("Биография"), max_length=256, blank=True)
     role = models.CharField(max_length=10, choices=USER_ROLES, default="USER")
 
-    REQUIRED_FIELDS = ["email"]  # Список имён полей для Superuser
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ('username',)
 
+    @property
+    def get_role(self):
+        return self.role
+    
     @property
     def is_admin(self):
         return self.is_staff or self.role == USER_ROLES.ADMIN
