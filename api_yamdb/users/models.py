@@ -30,12 +30,12 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=USER_ROLES, default="USER")
 
     # USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ('email',)
+    REQUIRED_FIELDS = ("email",)
 
     @property
     def get_role(self):
         return self.role
-    
+
     @property
     def is_admin(self):
         return self.is_staff or self.role == USER_ROLES[0]

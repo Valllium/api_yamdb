@@ -5,13 +5,11 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.filters import SearchFilter
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-
-# IsAuthenticatedOrReadOnly,)
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -35,10 +33,9 @@ from .serializers import (
 
 # from django_filters.rest_framework import DjangoFilterBackend
 
-# from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 
-# IsAuthenticated,
 
 
 def confirmation_code(self):
@@ -55,7 +52,7 @@ class UserViewSet(ModelViewSet):
     lookup_field = "username"
     pagination_class = LimitOffsetPagination
     filter_backends = [SearchFilter]
-    search_fields = ['username']
+    search_fields = ("user__username",)
     permission_classes = (
         IsAuthenticated,
         IsAdministrator,
@@ -76,7 +73,7 @@ class CreateUserAPIView(ModelViewSet):
         created_object = serializer.save()
         send_mail(
             "Подтверждение почты",
-            f"Ваш код подтверждения для авторизации{confirmation_code(created_object.username)}",
+            f"Ваш код подтверждения для авторизации: {confirmation_code(created_object.username)}",
             "from@example.com",
             [created_object.email],
             fail_silently=False,
