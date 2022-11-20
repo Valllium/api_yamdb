@@ -2,40 +2,13 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
-"""
-class UserManager(BaseUserManager):
-    def _create_user(self, email, username, password=None, **extra_fields):
-        
-        if not email:
-            raise ValueError("Проверка валидности email")
-        if username == "me":
-            raise ValueError("Username не может быть 'me', введите другой")
-        if not username:
-            raise ValueError("Вы не ввели Логин")
-        try:
-            with transaction.atomic():
-                user = self.model(
-                    email=self.normalize_email(email),
-                    username=username,
-                    **extra_fields,
-                )
-                user.save(using=self._db)
-                return user
-        except:
-            raise
+# from django.db.models import TextChoices
 
-    def create_user(self, email, password=None, **extra_fields):
-        extra_fields.setdefault("is_staff", False)
-        extra_fields.setdefault("is_superuser", False)
-        extra_fields.setdefault("is_active", False)
-        return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-
-        return self._create_user(email, password=password, **extra_fields)
-"""
+# class UserRoles(TextChoices):
+#    USER = "user"
+#    MODERATOR = "moderator"
+#    ADMIN = "admin"
 
 
 class User(AbstractUser):
@@ -57,6 +30,14 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=USER_ROLES, default="USER")
 
     REQUIRED_FIELDS = ["email"]  # Список имён полей для Superuser
+
+    @property
+    def is_admin(self):
+        return self.is_staff or self.role == USER_ROLES.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == USER_ROLES.MODERATOR
 
     def __str__(self):
         return self.username

@@ -41,7 +41,7 @@ class Title(models.Model):
             MaxValueValidator(
                 datetime.now().year, message=_("Такой год еще не наступил!")
             ),
-            MinValueValidator(1000, message=_("Слишком ранняя дата!"))
+            MinValueValidator(1000, message=_("Слишком ранняя дата!")),
         ],
     )
     category = models.ForeignKey(
@@ -86,7 +86,8 @@ class Review(models.Model):
     )
     text = models.TextField()
     created = models.DateTimeField(
-        'Дата создания отзыва', auto_now_add=True, db_index=True)
+        "Дата создания отзыва", auto_now_add=True, db_index=True
+    )
     score = models.IntegerField(default=0, choices=CHOICES)
 
     class Meta:
@@ -107,7 +108,8 @@ class Comment(models.Model):
     )
     text = models.TextField()
     created = models.DateTimeField(
-        'Дата комментария к отзыву', auto_now_add=True, db_index=True)
+        "Дата комментария к отзыву", auto_now_add=True, db_index=True
+    )
 
     class Meta:
         verbose_name = _("Коментарий")
