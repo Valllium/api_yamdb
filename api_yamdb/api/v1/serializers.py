@@ -2,12 +2,13 @@
 Модуль определения сериализаторов.
 """
 import datetime
-
 from django.db.models import Avg
+
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-# from rest_framework.relations import SlugRelatedField
+
+#from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
@@ -41,7 +42,7 @@ class UserSignupSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "username")
+        fields = ("username", "email")
 
 
 class UserTokenReceivingSerializer(ModelSerializer):
@@ -71,7 +72,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-        fields = ("author", "title", "text", "pub_date", "score",)
+        fields = ("user", "title", "text", "created", "score",)
         model = Review
 
 
@@ -83,7 +84,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("author", "review", "text", "pub_date",)
+        fields = ("author", "review", "text", "created",)
         model = Comment
 
 
@@ -103,16 +104,13 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
+
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title c валидацией введенного
     года и проверкой уникальности произведение-категория"""
 
-    genre = serializers.SlugRelatedField(
-        slug_field="slug", many=True, queryset=Genre.objects.all()
-    )
-    category = serializers.SlugRelatedField(
-        slug_field="slug", queryset=Category.objects.all()
-    )
+    genre = serializers.SlugRelatedField(slug_field="slug", many=True, queryset=Genre.objects.all())
+    category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
     description = serializers.CharField(max_length=400, required=False)
     rating = serializers.SerializerMethodField(read_only=True)
 
@@ -122,13 +120,11 @@ class TitleSerializer(serializers.ModelSerializer):
         #extra_kwargs = {'rating': {'decimal_places': 1}}
         validators = [
             UniqueTogetherValidator(
-                queryset=Title.objects.all(), fields=("name", "category")
-            )
-        ]
+                queryset=Title.objects.all(), fields=("name", "category"))]
 
     def get_rating(self, obj):
         """Расчет средней score для произведения"""
-        return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
+        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
 
     def validate_year(self, value):
         """Проверка года создания произведения

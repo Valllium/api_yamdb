@@ -45,7 +45,7 @@ class Title(models.Model):
             MaxValueValidator(
                 datetime.now().year, message=_("Такой год еще не наступил!")
             ),
-            MinValueValidator(1000, message=_("Слишком ранняя дата!")),
+            MinValueValidator(1000, message=_("Слишком ранняя дата!"))
         ],
     )
     category = models.ForeignKey(
@@ -90,7 +90,7 @@ class Review(models.Model):
         Title, on_delete=models.CASCADE, related_name="reviews"
     )
     text = models.TextField()
-    pub_date = models.DateTimeField(
+    created = models.DateTimeField(
         'Дата создания отзыва', auto_now_add=True, db_index=True)
     score = models.IntegerField(default=0, choices=CHOICES)
 
@@ -111,14 +111,8 @@ class Comment(models.Model):
         Review, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField()
-<<<<<<< HEAD
-    pub_date = models.DateTimeField(
-        'Дата комментария к отзыву', auto_now_add=True, db_index=True)
-=======
     created = models.DateTimeField(
-        "Дата комментария к отзыву", auto_now_add=True, db_index=True
-    )
->>>>>>> 74fed97 (Добавлены права доступа)
+        'Дата комментария к отзыву', auto_now_add=True, db_index=True)
 
     class Meta:
         verbose_name = _("Коментарий")
