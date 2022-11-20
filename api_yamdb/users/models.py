@@ -2,12 +2,10 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
-
+"""
 class UserManager(BaseUserManager):
     def _create_user(self, email, username, password=None, **extra_fields):
-        """
-        Создаем пользователя с использованием username и email
-        """
+        
         if not email:
             raise ValueError("Проверка валидности email")
         if username == "me":
@@ -37,6 +35,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
 
         return self._create_user(email, password=password, **extra_fields)
+"""
 
 
 class User(AbstractUser):
@@ -57,10 +56,7 @@ class User(AbstractUser):
     bio = models.TextField(_("Биография"), max_length=256, blank=True)
     role = models.CharField(max_length=10, choices=USER_ROLES, default="USER")
 
-    # USERNAME_FIELD = 'username' # Идентификатор для обращения
     REQUIRED_FIELDS = ["email"]  # Список имён полей для Superuser
-
-    objects = UserManager()
 
     def __str__(self):
         return self.username

@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
+    "django_filters",
     "users",
     "api",
     "reviews",
@@ -122,11 +123,19 @@ SIMPLE_JWT = {
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+   # "DEFAULT_PERMISSION_CLASSES": [
+    #    "rest_framework.permissions.IsAuthenticated",
+    #],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
+    ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
 }
 
-REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination"
-}
+# REST_FRAMEWORK = {
+#    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination"
+# }
+

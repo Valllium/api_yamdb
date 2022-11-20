@@ -7,6 +7,7 @@ from django.core.validators import (
     RegexValidator,
 )
 from django.db import models
+
 from django.utils.translation import gettext as _
 from users.models import User
 
@@ -17,48 +18,49 @@ class Category(CreatedModel):
     """Модель для Category. Наследуется из Core."""
 
     class Meta:
-        verbose_name = "Category"
-        verbose_name_plural = "Categories"
+        verbose_name = _("Категория")
+        verbose_name_plural = _("Категории")
+
+    def __str__(self):
+        return self.slug, self.name
 
 
 class Genre(CreatedModel):
     """Модель для Genre. Наследуется из Core."""
 
     class Meta:
-        verbose_name = "Genre"
-        verbose_name_plural = "Genres"
+        verbose_name = _("Жанр")
+        verbose_name_plural = _("Жанры")
 
 
 class Title(models.Model):
     """Модель произведения"""
 
-    name = models.CharField(_("Название"), max_length=250)
+    name = models.CharField(_("Название произведения"), max_length=250)
     year = models.IntegerField(
         _("Год создания"),
-        help_text=_("Год в формате YYYY"),
+        help_text=_("Год в формате 2022"),
         db_index=True,
         validators=[
             MaxValueValidator(
                 datetime.now().year, message=_("Такой год еще не наступил!")
             ),
-            MinValueValidator(1000, message=_("Слишком ранняя дата!")),
-            RegexValidator(
-                regex="^/d{4}$", message=_("Введите год в формате YYYY!")
-            ),
+            MinValueValidator(1000, message=_("Слишком ранняя дата!"))
         ],
     )
     category = models.ForeignKey(
         Category,
         null=True,
-        blank=False,
         on_delete=models.SET_NULL,
         related_name="titles",
     )
-    genres = models.ManyToManyField(Genre, through="GenreTitle")
+    genre = models.ManyToManyField(Genre,
+                                   through="GenreTitle")
+    description = models.TextField(_("Описание"), blank=True)
 
     class Meta:
-        verbose_name = "Title"
-        verbose_name_plural = "Titles"
+        verbose_name = _("Произведение")
+        verbose_name_plural = _("Произведения")
         ordering = ["name", "year"]
         constraints = [
             models.UniqueConstraint(
@@ -81,20 +83,22 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="reviews"
     )
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name="reviews"
     )
     text = models.TextField()
+    pub_date = models.DateTimeField(
+        'Дата создания отзыва', auto_now_add=True, db_index=True)
     score = models.IntegerField(default=0, choices=CHOICES)
 
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
         unique_together = (
-            "user",
+            "author",
             "title",
         )
 
@@ -107,7 +111,9 @@ class Comment(models.Model):
         Review, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField()
+    pub_date = models.DateTimeField(
+        'Дата комментария к отзыву', auto_now_add=True, db_index=True)
 
     class Meta:
-        verbose_name = "Коментарий"
-        verbose_name_plural = "Коментарии"
+        verbose_name = _("Коментарий")
+        verbose_name_plural = _("Коментарии")
