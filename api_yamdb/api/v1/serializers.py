@@ -109,6 +109,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     genre = serializers.SlugRelatedField(slug_field="slug", many=True, queryset=Genre.objects.all())
     category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
+    description = serializers.CharField(max_length=400, required=False)
     rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -123,7 +124,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         """Расчет средней score для произведения"""
-        return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
+        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
 
     def validate_year(self, value):
         """Проверка года создания произведения
