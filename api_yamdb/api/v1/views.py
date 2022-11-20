@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.filters import SearchFilter
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
 
 # IsAuthenticatedOrReadOnly,)
 from rest_framework.pagination import LimitOffsetPagination
@@ -52,8 +54,8 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     lookup_field = "username"
     pagination_class = LimitOffsetPagination
-    filter_backends = (SearchFilter,)
-    search_fields = ("=user__username",)
+    filter_backends = [SearchFilter]
+    search_fields = ['username']
     permission_classes = (
         IsAuthenticated,
         IsAdministrator,
