@@ -31,6 +31,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ('username',)
+<<<<<<< HEAD
 
     @property
     def get_role(self):
@@ -43,7 +44,13 @@ class User(AbstractUser):
     @property
     def is_moderator(self):
         return self.role == USER_ROLES.MODERATOR
+=======
+>>>>>>> 2be2b27 (Пофиксил права)
 
+    @property
+    def get_role(self):
+        return self.role
+    
     @property
     def is_admin(self):
         return self.is_staff or self.role == USER_ROLES.ADMIN
