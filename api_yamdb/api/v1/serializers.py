@@ -71,17 +71,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-<<<<<<< HEAD
         fields = ("author", "title", "text", "pub_date", "score",)
-=======
-        fields = (
-            "user",
-            "title",
-            "text",
-            "created",
-            "score",
-        )
->>>>>>> 74fed97 (Добавлены права доступа)
         model = Review
 
 
@@ -93,16 +83,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-<<<<<<< HEAD
         fields = ("author", "review", "text", "pub_date",)
-=======
-        fields = (
-            "author",
-            "review",
-            "text",
-            "created",
-        )
->>>>>>> 74fed97 (Добавлены права доступа)
         model = Comment
 
 
