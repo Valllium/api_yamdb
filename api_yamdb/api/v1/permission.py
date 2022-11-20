@@ -25,7 +25,7 @@ class IsAdministrator(BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and (
-            request.user.get_role == User.USER_ROLES.ADMIN
+            request.user.get_role == User.USER_ROLES[0]
             or request.user.is_staff
             or request.user.is_superuser
         )
@@ -51,6 +51,6 @@ class IsAuthorOrIsStaffPermission(BasePermission):
                 or request.user.is_staff
                 or request.user.is_superuser
                 or request.user.get_role
-                in [User.USER_ROLES.ADMIN, User.USER_ROLES.MODERATOR]
+                in [User.USER_ROLES[0], User.USER_ROLES[1]]
             )
         return True
