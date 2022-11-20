@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "rest_framework_simplejwt",
-    "django_filters",
+    #    "django_filters",
     "users",
     "api",
     "reviews",
@@ -129,13 +129,12 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
-    "DEFAULT_RENDERER_CLASSES": [
-        "rest_framework.renderers.JSONRenderer",
-    ],
+    #    "DEFAULT_RENDERER_CLASSES": [
+    #        "rest_framework.renderers.JSONRenderer",
+    #    ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
 }
 
 # REST_FRAMEWORK = {
 #    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination"
 # }
-

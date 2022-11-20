@@ -2,13 +2,12 @@
 Модуль определения сериализаторов.
 """
 import datetime
-from django.db.models import Avg
 
+from django.db.models import Avg
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-
-#from rest_framework.relations import SlugRelatedField
+# from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
@@ -42,7 +41,7 @@ class UserSignupSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("username", "email")
+        fields = ("email", "username")
 
 
 class UserTokenReceivingSerializer(ModelSerializer):
@@ -104,7 +103,6 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
-
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title c валидацией введенного
     года и проверкой уникальности произведение-категория"""
@@ -119,11 +117,13 @@ class TitleSerializer(serializers.ModelSerializer):
         #extra_kwargs = {'rating': {'decimal_places': 1}}
         validators = [
             UniqueTogetherValidator(
-                queryset=Title.objects.all(), fields=("name", "category"))]
+                queryset=Title.objects.all(), fields=("name", "category")
+            )
+        ]
 
     def get_rating(self, obj):
         """Расчет средней score для произведения"""
-        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
+        return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
 
     def validate_year(self, value):
         """Проверка года создания произведения

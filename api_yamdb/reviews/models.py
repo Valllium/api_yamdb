@@ -45,7 +45,7 @@ class Title(models.Model):
             MaxValueValidator(
                 datetime.now().year, message=_("Такой год еще не наступил!")
             ),
-            MinValueValidator(1000, message=_("Слишком ранняя дата!"))
+            MinValueValidator(1000, message=_("Слишком ранняя дата!")),
         ],
     )
     category = models.ForeignKey(

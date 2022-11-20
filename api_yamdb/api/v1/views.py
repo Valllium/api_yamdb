@@ -5,16 +5,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-
-from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import SearchFilter
 
 # IsAuthenticatedOrReadOnly,)
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -22,6 +19,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
+from .permission import IsAdministrator, IsAuthorOrIsStaffPermission, ReadOnly
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -32,6 +30,11 @@ from .serializers import (
     UserSignupSerializer,
     UserTokenReceivingSerializer,
 )
+
+# from django_filters.rest_framework import DjangoFilterBackend
+
+# from rest_framework.filters import OrderingFilter, SearchFilter
+
 
 # IsAuthenticated,
 
@@ -48,11 +51,17 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     lookup_field = "username"
-
+    pagination_class = LimitOffsetPagination
+    filter_backends = (SearchFilter,)
+    search_fields = ("=user__username",)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdministrator,
+    )
     if lookup_field == "me":
 
         def get_queryset(self):
-            return User.objects.get(username=self)
+            return User.objects.get(username=self.username)
 
 
 class CreateUserAPIView(ModelViewSet):
@@ -109,6 +118,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthorOrIsStaffPermission]
     # permission_classes = (AuthorOrReadOnly, IsAuthenticatedOrReadOnly,)
     pagination_class = LimitOffsetPagination
 
@@ -130,7 +140,10 @@ class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = "slug"
-    filter_backends = [SearchFilter]
+    pagination_class = LimitOffsetPagination
+    permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
+    #   filter_backends = [SearchFilter]
+    filter_backends = (SearchFilter,)
     search_fields = ("name",)
 
 
@@ -144,9 +157,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = "slug"
-    filter_backends = [SearchFilter]
+    pagination_class = LimitOffsetPagination
+    filter_backends = (SearchFilter,)
     search_fields = ("name",)
-   # permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -155,8 +169,9 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    pagination_class = LimitOffsetPagination
+    #    filter_backends = [DjangoFilterBackend, OrderingFilter]
     #    permission_classes = [IsAdminUser]
+    filter_backends = (SearchFilter,)
     filterset_fields = ("name", "year", "genre__slug", "category__slug")
     ordering_fields = ("name", "year")
-
