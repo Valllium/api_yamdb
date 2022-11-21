@@ -39,3 +39,4 @@ class IsAuthorOrIsStaffPermission(BasePermission):
                 in [User.is_admin, User.is_moderator]
             )
         return True
+

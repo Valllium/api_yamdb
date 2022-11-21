@@ -3,9 +3,9 @@
 import re
 
 import django.core.validators
-import django.db.models.deletion
-from django.conf import settings
 from django.db import migrations, models
+import django.db.models.deletion
+import re
 
 
 class Migration(migrations.Migration):
@@ -13,12 +13,11 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name="Category",
+            name='Category',
             fields=[
                 (
                     "id",
@@ -45,12 +44,12 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "verbose_name": "Category",
-                "verbose_name_plural": "Categories",
+                'verbose_name': 'Категория',
+                'verbose_name_plural': 'Категории',
             },
         ),
         migrations.CreateModel(
-            name="Genre",
+            name='Comment',
             fields=[
                 (
                     "id",
@@ -77,12 +76,12 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "verbose_name": "Genre",
-                "verbose_name_plural": "Genres",
+                'verbose_name': 'Коментарий',
+                'verbose_name_plural': 'Коментарии',
             },
         ),
         migrations.CreateModel(
-            name="GenreTitle",
+            name='Genre',
             fields=[
                 (
                     "id",
@@ -102,9 +101,13 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
+            options={
+                'verbose_name': 'Genre',
+                'verbose_name_plural': 'Genres',
+            },
         ),
         migrations.CreateModel(
-            name="Title",
+            name='GenreTitle',
             fields=[
                 (
                     "id",
@@ -158,7 +161,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name="Review",
+            name='Review',
             fields=[
                 (
                     "id",
@@ -214,8 +217,8 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "verbose_name": "Отзыв",
-                "verbose_name_plural": "Отзывы",
+                'verbose_name': 'Отзыв',
+                'verbose_name_plural': 'Отзывы',
             },
         ),
         migrations.AddField(
@@ -226,7 +229,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.CreateModel(
-            name="Comment",
+            name='Title',
             fields=[
                 (
                     "id",
@@ -264,18 +267,9 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "verbose_name": "Коментарий",
-                "verbose_name_plural": "Коментарии",
+                'verbose_name': 'Произведение',
+                'verbose_name_plural': 'Произведения',
+                'ordering': ['name', 'year'],
             },
-        ),
-        migrations.AddConstraint(
-            model_name="title",
-            constraint=models.UniqueConstraint(
-                fields=("name", "category"), name="unique_name_category"
-            ),
-        ),
-        migrations.AlterUniqueTogether(
-            name="review",
-            unique_together={("user", "title")},
         ),
     ]

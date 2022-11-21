@@ -32,6 +32,7 @@ class User(AbstractUser):
     # USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ("email",)
 
+
     @property
     def get_role(self):
         return self.role

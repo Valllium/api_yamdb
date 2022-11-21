@@ -5,11 +5,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.filters import SearchFilter
+
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -36,6 +38,7 @@ from .serializers import (
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 
+
 def confirmation_code(self):
     user = get_object_or_404(User, username=self)
     code = default_token_generator.make_token(user)
@@ -48,6 +51,7 @@ class UserViewSet(ModelViewSet):
     lookup_field = "username"
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
+
     filter_fields = ('username',)
     search_fields = ("username",)
     permission_classes = (
@@ -87,7 +91,6 @@ class DetailUserMeAPIView(APIView):
 
 class CreateUserAPIView(APIView):
     """Регистрация пользователя"""
-
     permission_classes = (AllowAny,)
     queryset = User.objects.all()
 
