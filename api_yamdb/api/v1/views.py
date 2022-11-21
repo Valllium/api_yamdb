@@ -18,6 +18,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
+from rest_framework import mixins
 
 from .permission import IsAdministrator, IsAuthorOrIsStaffPermission, ReadOnly
 from .serializers import (
@@ -29,6 +30,7 @@ from .serializers import (
     UserSerializer,
     UserSignupSerializer,
     UserTokenReceivingSerializer,
+    TitleSerializerCreate,
 )
 
 # from django_filters.rest_framework import DjangoFilterBackend
@@ -164,6 +166,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         )
 
 
+
+
+
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrIsStaffPermission,)
@@ -179,8 +184,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         review = get_object_or_404(Review, id=review_id)
         serializer.save(user=self.request.user, review=review)
 
+class ListCreateDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                              mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    pass
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(ListCreateDeleteViewSet):
     """ViewSet для эндпойнта /genre/
     c пагинацией и поиском по полю name"""
 
@@ -188,7 +196,7 @@ class GenreViewSet(viewsets.ModelViewSet):
     serializer_class = GenreSerializer
     lookup_field = "slug"
     pagination_class = LimitOffsetPagination
-    permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
+    #permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
     #   filter_backends = [SearchFilter]
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
@@ -197,7 +205,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 #    permission_classes = [IsAdminUser]
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(ListCreateDeleteViewSet):
     """ViewSet для эндпойнта /Category/
     c пагинацией и поиском по полю name"""
 
@@ -207,26 +215,47 @@ class CategoryViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
-    permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
+    #permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
 
+class ListCreateDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                              mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    pass
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet(viewsets.ViewSet):
     """ViewSet для эндпойнта /Title/
     c пагинацией и фильтрацией  по всем полям"""
 
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    pagination_class = LimitOffsetPagination
+    #queryset = Title.objects.all()
+    #serializer_class = TitleSerializer
+    #pagination_class = LimitOffsetPagination
     #    filter_backends = [DjangoFilterBackend, OrderingFilter]
     #    permission_classes = [IsAdminUser]
-    filter_backends = (SearchFilter,)
-    filterset_fields = (
-        "name",
-        "year",
-        "genre__slug",
-        "category__slug",
-    )
-    ordering_fields = (
-        "name",
-        "year",
-    )
+    #filter_backends = (SearchFilter,)
+   # filterset_fields = (
+   #     "name",
+     #   "year",
+    #    "genre__slug",
+   #     "category__slug",
+   # )
+   # ordering_fields = (
+   #     "name",
+   #     "year",
+   # )
+
+    def list(self, request):
+        queryset = Title.objects.all()
+        serializer = TitleSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None):
+        queryset = Title.objects.all()
+        title = get_object_or_404(queryset, pk=pk)
+        serializer = TitleSerializer(title)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = TitleSerializerCreate(data=request.data)
+        serializer.is_valid
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

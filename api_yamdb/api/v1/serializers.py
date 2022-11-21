@@ -125,9 +125,8 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field="slug", many=True, queryset=Genre.objects.all()
     )
-    category = serializers.SlugRelatedField(
-        slug_field="slug", queryset=Category.objects.all()
-    )
+    category = CategorySerializer(read_only=True)
+
     description = serializers.CharField(max_length=400, required=False)
     rating = serializers.SerializerMethodField(read_only=True)
 
@@ -153,7 +152,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         """Расчет средней score для произведения"""
-        return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
+        return int(obj.reviews.all().aggregate(Avg("score"))["score__avg"])
 
     def validate_year(self, value):
         """Проверка года создания произведения
@@ -162,3 +161,32 @@ class TitleSerializer(serializers.ModelSerializer):
         if not (1000 < value <= current_year):
             raise serializers.ValidationError(_("Проверьте год создания!"))
         return value
+
+class TitleSerializerCreate(serializers.ModelSerializer):
+    """Сериализатор для создания об'ект  Title"""
+
+    genre = serializers.SlugRelatedField(
+        slug_field="slug", many=True, queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="slug", queryset=Genre.objects.all()
+    )
+
+    description = serializers.CharField(max_length=400, required=False)
+
+    class Meta:
+
+        fields = (
+            "name",
+            "year",
+            "category",
+            "genre",
+            "description",
+        )
+
+        model = Title
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Title.objects.all(), fields=("name", "category")
+            )
+        ]
