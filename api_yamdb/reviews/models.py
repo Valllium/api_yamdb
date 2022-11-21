@@ -90,7 +90,7 @@ class Review(models.Model):
         Title, on_delete=models.CASCADE, related_name="reviews"
     )
     text = models.TextField()
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         "Дата создания отзыва", auto_now_add=True, db_index=True
     )
     score = models.IntegerField(default=0, choices=CHOICES)
@@ -98,21 +98,24 @@ class Review(models.Model):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
-        unique_together = (
-            "author",
-            "title",
-        )
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'title',),
+                name='unique_user_title'
+            )
+        ]
+
 
 
 class Comment(models.Model):
-    author = models.ForeignKey(
+    user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="comments"
     )
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField()
-    created = models.DateTimeField(
+    pub_date = models.DateTimeField(
         "Дата комментария к отзыву", auto_now_add=True, db_index=True
     )
 
