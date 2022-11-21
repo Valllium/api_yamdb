@@ -99,7 +99,7 @@ class Review(models.Model):
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
         unique_together = (
-            "user",
+            "author",
             "title",
         )
     #    constraints = [
