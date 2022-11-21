@@ -95,7 +95,7 @@ def get_token(request):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    # permission_classes = (AuthorOrReadOnly, IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthorOrIsStaffPermission, IsAuthenticated,)
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -106,19 +106,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get("title_id")
         title = get_object_or_404(Title, id=title_id)
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(user=self.request.user, title=title)
 
-    # Нужно, скорее всего, вставить в TitleViewSet:
     def get_avg_rating(self):
-        return Review.objects.filter(title_id=self.title_id).aggregate(
+        return Review.objects.filter(title_id=self.title.id).aggregate(
             Avg("review__score")
         )
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthorOrIsStaffPermission]
-    # permission_classes = (AuthorOrReadOnly, IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthorOrIsStaffPermission,)
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -129,7 +127,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review_id = self.kwargs.get("review_id")
         review = get_object_or_404(Review, id=review_id)
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(user=self.request.user, review=review)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
@@ -172,5 +170,5 @@ class TitleViewSet(viewsets.ModelViewSet):
     #    filter_backends = [DjangoFilterBackend, OrderingFilter]
     #    permission_classes = [IsAdminUser]
     filter_backends = (SearchFilter,)
-    filterset_fields = ("name", "year", "genre__slug", "category__slug")
-    ordering_fields = ("name", "year")
+    filterset_fields = ("name", "year", "genre__slug", "category__slug",)
+    ordering_fields = ("name", "year",)
