@@ -7,14 +7,14 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import status, viewsets
+from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet, ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
@@ -142,7 +142,7 @@ class GetTokenAPIView(APIView):
 #    return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (
         IsAuthorOrIsStaffPermission,
@@ -169,7 +169,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrIsStaffPermission,)
     pagination_class = LimitOffsetPagination
@@ -185,7 +185,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user, review=review)
 
 class ListCreateDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                              mixins.DestroyModelMixin, viewsets.GenericViewSet):
+                              mixins.DestroyModelMixin, GenericViewSet):
     pass
 
 class GenreViewSet(ListCreateDeleteViewSet):
@@ -218,10 +218,10 @@ class CategoryViewSet(ListCreateDeleteViewSet):
     #permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
 
 class ListCreateDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                              mixins.DestroyModelMixin, viewsets.GenericViewSet):
+                              mixins.DestroyModelMixin, GenericViewSet):
     pass
 
-class TitleViewSet(viewsets.ViewSet):
+class TitleViewSet(ViewSet):
     """ViewSet для эндпойнта /Title/
     c пагинацией и фильтрацией  по всем полям"""
 
@@ -247,15 +247,18 @@ class TitleViewSet(viewsets.ViewSet):
         serializer = TitleSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, id=None):
         queryset = Title.objects.all()
-        title = get_object_or_404(queryset, pk=pk)
+        title = get_object_or_404(queryset, id=pk)
         serializer = TitleSerializer(title)
         return Response(serializer.data)
 
     def create(self, request):
         serializer = TitleSerializerCreate(data=request.data)
-        serializer.is_valid
-        serializer.save()
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+       # return Response(serializer.data, status=status.HTTP_201_CREATED)
