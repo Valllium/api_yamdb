@@ -5,11 +5,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.filters import SearchFilter
+
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -37,12 +39,9 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 
 
-
 def confirmation_code(self):
     user = get_object_or_404(User, username=self)
-    uid = urlsafe_base64_encode(force_bytes(user))
     code = default_token_generator.make_token(user)
-    # return f"http://127.0.0.1:8000/api/v1/auth/token/{uid}/{token}/"
     return code
 
 
@@ -51,46 +50,103 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     lookup_field = "username"
     pagination_class = LimitOffsetPagination
-    filter_backends = [SearchFilter]
-    search_fields = ("user__username",)
+    filter_backends = (SearchFilter,)
+
+    filter_fields = ('username',)
+    search_fields = ("username",)
     permission_classes = (
         IsAuthenticated,
+    #    IsAuthorOrIsStaffPermission,
         IsAdministrator,
     )
-    if lookup_field == "me":
+    #if lookup_field == "me":
+    #
+    #    def get_queryset(self):
+    #        return User.objects.get(username=self.username)
+    
+#    @detail_route(permission_classes=[IsAuthenticated], methods=['PUT', 'PATCH'])
+    #@action(methods=('PUT','GET', 'PATCH'), detail=True, url_path='me', url_name='me', permission_classes=[IsAuthenticated])
+    #@permission_classes([IsAuthenticated])
+    #def me(self, request, *args, **kwargs):
+    #    self.object = get_object_or_404(User, username=request.user.username)
+    #    serializer = self.get_serializer(self.object)
+    #    return Response(serializer.data)
 
-        def get_queryset(self):
-            return User.objects.get(username=self.username)
 
+class DetailUserMeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-class CreateUserAPIView(ModelViewSet):
+    def get(self, request):
+        queryset = User.objects.get(username=request.user.username)
+        serializer = UserSerializer(queryset)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        user = User.objects.get(username=request.user.username)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CreateUserAPIView(APIView):
+    """Регистрация пользователя"""
     permission_classes = (AllowAny,)
-    http_method_names = ["post"]
     queryset = User.objects.all()
-    serializer_class = UserSignupSerializer
 
-    def perform_create(self, serializer):
-        created_object = serializer.save()
-        send_mail(
-            "Подтверждение почты",
-            f"Ваш код подтверждения для авторизации: {confirmation_code(created_object.username)}",
-            "from@example.com",
-            [created_object.email],
-            fail_silently=False,
-        )
+    def post(self, request):
+        serializer = UserSignupSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            send_mail(
+                "Подтверждение почты",
+                (
+                    f"Ваш код подтверждения для авторизации:"
+                    f"{confirmation_code(serializer.data['username'])}"
+                ),
+                "from@example.com",
+                [serializer.data["email"]],
+                fail_silently=False,
+            )
+            return Response(
+                {
+                    "email": serializer.data["email"],
+                    "username": serializer.data["username"],
+                },
+                status=status.HTTP_200_OK,
+            )
 
 
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def get_token(request):
-    serializer = UserTokenReceivingSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(User, username=serializer.data["username"])
-    confirmation_code = serializer.data["confirmation_code"]
-    if not default_token_generator.check_token(user, confirmation_code):
-        return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
-    token = RefreshToken.for_user(user).access_token
-    return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
+class GetTokenAPIView(APIView):
+    """Выдача токена"""
+    permission_classes = (AllowAny, )
+
+    def post(self, request):
+        serializer = UserTokenReceivingSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = get_object_or_404(
+                User, username=serializer.data['username'])
+           # проверяем confirmation code, если верный, выдаем токен
+            if default_token_generator.check_token(
+               user, serializer.data['confirmation_code']):
+                token = RefreshToken.for_user(user)
+                return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
+            return Response({
+                'confirmation code': 'Некорректный код подтверждения!'},
+                status=status.HTTP_400_BAD_REQUEST)
+
+
+#@api_view(["POST"])
+#@permission_classes([AllowAny])
+#def get_token(request):
+#    serializer = UserTokenReceivingSerializer(data=request.data)
+#    if serializer.is_valid(raise_exception=True):
+#        user = get_object_or_404(User, username=serializer.data["username"])
+#        confirmation_code = serializer.data["confirmation_code"]
+#        if not default_token_generator.check_token(user, confirmation_code):
+#            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
+#        token = RefreshToken.for_user(user).access_token
+#    return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

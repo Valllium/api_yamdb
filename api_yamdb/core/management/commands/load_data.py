@@ -9,6 +9,7 @@ from users.models import User
 DATA = {
     User: "static/data/users.csv",
     Category: "static/data/category.csv",
+
     Genre: "static/data/genre.csv",
     Title: 'static/data/titles.csv',
     GenreTitle: "static/data/genre_title.csv",

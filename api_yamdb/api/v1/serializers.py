@@ -28,6 +28,7 @@ class UserSerializer(ModelSerializer):
             'bio',
             'role',
         )
+        read_only_fields = ('role', )
 
 
 class UserSignupSerializer(ModelSerializer):
@@ -137,6 +138,7 @@ class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
+
         fields = (
             'id',
             'name',
@@ -146,7 +148,9 @@ class TitleSerializer(serializers.ModelSerializer):
             'description',
             'rating'
         )
+
         model = Title
+        #extra_kwargs = {'rating': {'decimal_places': 1}}
         validators = [
             UniqueTogetherValidator(
                 queryset=Title.objects.all(), fields=('name', 'category')
@@ -160,7 +164,7 @@ class TitleSerializer(serializers.ModelSerializer):
     def validate_year(self, value):
         """Проверка года создания произведения
         (диапозон 1000 до настоящего года)"""
-        current_year = datetime.datetime.today().year
+        current_year = int(datetime.datetime.today().year)
         if not (1000 < value <= current_year):
             raise serializers.ValidationError(_("Проверьте год создания!"))
         return value
