@@ -28,7 +28,8 @@ class UserSerializer(ModelSerializer):
             "bio",
             "role",
         )
-        read_only_fields = ("role",)
+        if not User.is_admin or not User.is_moderator:
+            read_only_fields = ("role",)
 
 
 class UserSignupSerializer(ModelSerializer):

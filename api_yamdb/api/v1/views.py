@@ -45,41 +45,28 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     lookup_field = "username"
     pagination_class = LimitOffsetPagination
-    filter_backends = (SearchFilter,)
+    #filter_backends = (SearchFilter,)
 
-    filter_fields = ("username",)
-    search_fields = ("username",)
+    #filter_fields = ("username",)
+    #search_fields = ("username",)
     permission_classes = (
         IsAuthenticated,
-        #    IsAuthorOrIsStaffPermission,
+        IsAuthorOrIsStaffPermission,
         IsAdministrator,
     )
-    # if lookup_field == "me":
-    #
-    #    def get_queryset(self):
-    #        return User.objects.get(username=self.username)
-
-
-#    @detail_route(permission_classes=[IsAuthenticated], methods=['PUT', 'PATCH'])
-# @action(methods=('PUT','GET', 'PATCH'), detail=True, url_path='me', url_name='me', permission_classes=[IsAuthenticated])
-# @permission_classes([IsAuthenticated])
-# def me(self, request, *args, **kwargs):
-#    self.object = get_object_or_404(User, username=request.user.username)
-#    serializer = self.get_serializer(self.object)
-#    return Response(serializer.data)
 
 
 class DetailUserMeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        queryset = User.objects.get(username=request.user.username)
-        serializer = UserSerializer(queryset)
+        queryset = get_object_or_404(User, username=request.user.username)
+        serializer = UserSerializer(queryset, many=False)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
-        user = User.objects.get(username=request.user.username)
-        serializer = UserSerializer(user, data=request.data, partial=True)
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = UserSerializer(user, data=request.data, partial=True, many=False)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

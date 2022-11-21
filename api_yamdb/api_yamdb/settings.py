@@ -115,6 +115,7 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
@@ -123,18 +124,15 @@ SIMPLE_JWT = {
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 REST_FRAMEWORK = {
-    # "DEFAULT_PERMISSION_CLASSES": [
-    #     "rest_framework.permissions.IsAuthenticated",
-    # ],
+    #"DEFAULT_PERMISSION_CLASSES": [
+    #    "rest_framework.permissions.IsAuthenticated",
+    #],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
-    #    "DEFAULT_RENDERER_CLASSES": [
-    #        "rest_framework.renderers.JSONRenderer",
-    #    ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    'PAGE_SIZE': 5,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
 }
-
-# REST_FRAMEWORK = {
-#    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination"
-# }

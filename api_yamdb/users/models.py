@@ -15,9 +15,9 @@ class User(AbstractUser):
     """Расширенная модель пользователя."""
 
     USER_ROLES = (
-        ("USER", "user"),
-        ("MODERATOR", "moderator"),
-        ("ADMIN", "admin"),
+        ("user", "user"),
+        ("moderator", "moderator"),
+        ("admin", "admin"),
     )
     email = models.EmailField(
         _("Электронная почта"),
@@ -41,7 +41,7 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.is_staff or self.role == self.USER_ROLES[0][0]
+        return self.role == self.USER_ROLES[0][0]
 
     @property
     def is_moderator(self):
