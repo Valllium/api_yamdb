@@ -171,7 +171,7 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrIsStaffPermission,)
+    #permission_classes = (IsAuthorOrIsStaffPermission,)
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -200,9 +200,6 @@ class GenreViewSet(ListCreateDeleteViewSet):
     #   filter_backends = [SearchFilter]
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
-
-
-#    permission_classes = [IsAdminUser]
 
 
 class CategoryViewSet(ListCreateDeleteViewSet):

@@ -154,13 +154,7 @@ class TitleSerializer(serializers.ModelSerializer):
         """Расчет средней score для произведения"""
         return int(obj.reviews.all().aggregate(Avg("score"))["score__avg"])
 
-    def validate_year(self, value):
-        """Проверка года создания произведения
-        (диапозон 1000 до настоящего года)"""
-        current_year = int(datetime.datetime.today().year)
-        if not (1000 < value <= current_year):
-            raise serializers.ValidationError(_("Проверьте год создания!"))
-        return value
+
 
 class TitleSerializerCreate(serializers.ModelSerializer):
     """Сериализатор для создания об'ект  Title"""
@@ -190,3 +184,11 @@ class TitleSerializerCreate(serializers.ModelSerializer):
                 queryset=Title.objects.all(), fields=("name", "category")
             )
         ]
+
+    def validate_year(self, value):
+        """Проверка года создания произведения
+        (диапозон 1000 до настоящего года)"""
+        current_year = int(datetime.datetime.today().year)
+        if not (1000 < value <= current_year):
+            raise serializers.ValidationError(_("Проверьте год создания!"))
+        return value
