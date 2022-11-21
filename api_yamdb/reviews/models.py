@@ -81,7 +81,7 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="reviews"
     )
     title = models.ForeignKey(
@@ -96,21 +96,15 @@ class Review(models.Model):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
-        unique_together = (
-            "user",
-            "title",
-        )
-
-    #    constraints = [
-    #        models.UniqueConstraint(
-    #            fields=('user', 'title',),
-    #            name='unique_user_title'
-    #        )
-    #    ]
+        ordering = ('-pub_date', 'score')
+        constraints = [
+            models.UniqueConstraint(fields=['title', 'author'],
+                                    name='unique review')
+        ]
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="comments"
     )
     review = models.ForeignKey(
