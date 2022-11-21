@@ -65,7 +65,7 @@ class UserTokenReceivingSerializer(ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         read_only=True,
         slug_field="username",
@@ -75,7 +75,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'id',
-            'user',
+            'author',
             'title',
             'text',
             'pub_date',
@@ -91,7 +91,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         read_only=True,
         slug_field="username",
@@ -100,7 +100,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'id',
-            'user',
+            'author',
             'review',
             'text',
             'pub_date'

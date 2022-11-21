@@ -83,7 +83,7 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="reviews"
     )
     title = models.ForeignKey(
@@ -111,7 +111,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(
+    author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="comments"
     )
     review = models.ForeignKey(
