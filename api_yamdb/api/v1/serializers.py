@@ -27,6 +27,7 @@ class UserSerializer(ModelSerializer):
             "bio",
             "role",
         )
+        read_only_fields = ('role', )
 
 
 class UserSignupSerializer(ModelSerializer):
