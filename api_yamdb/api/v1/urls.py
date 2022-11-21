@@ -3,29 +3,26 @@
 """
 
 from django.urls import include, path
-
-# from rest_framework.authtoken import views
 from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoryViewSet,
-    CommentViewSet,  # TakeTokenView,
+    CommentViewSet,  # get_token,
     CreateUserAPIView,
+    DetailUserMeAPIView,
     GenreViewSet,
+    GetTokenAPIView,
     ReviewViewSet,
     TitleViewSet,
     UserViewSet,
-    get_token,
 )
 
 app_name = "api"
 
 router = DefaultRouter()
-auth_router = DefaultRouter()
 
 router.register(r"users", UserViewSet, basename="users")
-# router.register(r"users/me", ChangeSelfAPIView)
-# router.register(r'^create/$', CreateUserAPIView, basename='create')
+# router.register(r"users/me", DetailUserMeAPIView.as_view(), basename="me")
 
 router.register(
     r"titles/(?P<title_id>\d+)/reviews", ReviewViewSet, basename="reviews"
@@ -38,16 +35,16 @@ router.register(
 router.register(r"genres", GenreViewSet, basename="genres")
 router.register(r"categories", CategoryViewSet, basename="categories")
 router.register(r"titles", TitleViewSet, basename="titles")
-auth_router.register(r"signup", CreateUserAPIView, basename="signup")
-# auth_router.register(r"token", TakeTokenView, basename='token')
 
 token = [
-    path("", get_token),
+    path("signup/", CreateUserAPIView.as_view(), name="signup"),
+    # path("token/", get_token),
+    path("token/", GetTokenAPIView.as_view(), name="token"),
 ]
 
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("auth/", include(auth_router.urls)),
-    path("auth/token/", include(token)),
+    path("users/me/", DetailUserMeAPIView.as_view(), name="me"),
+    path("auth/", include(token)),
 ]

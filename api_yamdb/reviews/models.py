@@ -7,7 +7,6 @@ from django.core.validators import (
     RegexValidator,
 )
 from django.db import models
-
 from django.utils.translation import gettext as _
 from users.models import User
 
@@ -45,7 +44,7 @@ class Title(models.Model):
             MaxValueValidator(
                 datetime.now().year, message=_("Такой год еще не наступил!")
             ),
-            MinValueValidator(1000, message=_("Слишком ранняя дата!"))
+            MinValueValidator(1000, message=_("Слишком ранняя дата!")),
         ],
     )
     category = models.ForeignKey(
@@ -54,8 +53,7 @@ class Title(models.Model):
         on_delete=models.SET_NULL,
         related_name="titles",
     )
-    genre = models.ManyToManyField(Genre,
-                                   through="GenreTitle")
+    genre = models.ManyToManyField(Genre, through="GenreTitle")
     description = models.TextField(_("Описание"), blank=True)
 
     class Meta:
@@ -91,16 +89,18 @@ class Review(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        'Дата создания отзыва', auto_now_add=True, db_index=True)
+        "Дата создания отзыва", auto_now_add=True, db_index=True
+    )
     score = models.IntegerField(default=0, choices=CHOICES)
 
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
-        unique_together = (
-            "author",
-            "title",
-        )
+        ordering = ('-pub_date', 'score')
+        constraints = [
+            models.UniqueConstraint(fields=['title', 'author'],
+                                    name='unique review')
+        ]
 
 
 class Comment(models.Model):
@@ -112,7 +112,8 @@ class Comment(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        'Дата комментария к отзыву', auto_now_add=True, db_index=True)
+        "Дата комментария к отзыву", auto_now_add=True, db_index=True
+    )
 
     class Meta:
         verbose_name = _("Коментарий")
