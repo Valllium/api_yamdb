@@ -68,7 +68,9 @@ class UserTokenReceivingSerializer(ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    """Сериализатор отзыва"""
+
+    author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         read_only=True,
         slug_field="username",
@@ -76,24 +78,26 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-        fields = ("id", "user", "title", "text", "pub_date", "score")
+        fields = ("id", "author", "title", "text", "pub_date", "score")
         model = Review
         constraints = [
             models.UniqueConstraint(
-                fields=("user", "title"), name="unique_user_title"
+                fields=("auhtor", "title"), name="unique_auhtor_title"
             )
         ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(
+    """Сериализатор комментария"""
+    
+    author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         read_only=True,
         slug_field="username",
     )
 
     class Meta:
-        fields = ("id", "user", "review", "text", "pub_date")
+        fields = ("id", "auhtor", "review", "text", "pub_date")
         model = Comment
 
 
