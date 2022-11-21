@@ -7,7 +7,6 @@ from django.core.validators import (
     RegexValidator,
 )
 from django.db import models
-
 from django.utils.translation import gettext as _
 from users.models import User
 
@@ -54,8 +53,7 @@ class Title(models.Model):
         on_delete=models.SET_NULL,
         related_name="titles",
     )
-    genre = models.ManyToManyField(Genre,
-                                   through="GenreTitle")
+    genre = models.ManyToManyField(Genre, through="GenreTitle")
     description = models.TextField(_("Описание"), blank=True)
 
     class Meta:
@@ -98,16 +96,11 @@ class Review(models.Model):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
-        unique_together = (
-            "author",
-            "title",
-        )
-    #    constraints = [
-    #        models.UniqueConstraint(
-    #            fields=('user', 'title',),
-    #            name='unique_user_title'
-    #        )
-    #    ]
+        ordering = ('-pub_date', 'score')
+        constraints = [
+            models.UniqueConstraint(fields=['title', 'author'],
+                                    name='unique review')
+        ]
 
 
 class Comment(models.Model):

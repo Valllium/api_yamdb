@@ -21,14 +21,14 @@ class UserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "bio",
+            "role",
         )
-        read_only_fields = ('role', )
+        read_only_fields = ("role",)
 
 
 class UserSignupSerializer(ModelSerializer):
@@ -43,7 +43,10 @@ class UserSignupSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("email", "username")
+        fields = (
+            "email",
+            "username",
+        )
 
 
 class UserTokenReceivingSerializer(ModelSerializer):
@@ -61,7 +64,7 @@ class UserTokenReceivingSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("username', 'confirmation_code")
+        fields = ("username", "confirmation_code")
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -73,19 +76,11 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-        fields = (
-            'id',
-            'author',
-            'title',
-            'text',
-            'pub_date',
-            'score'
-        )
+        fields = ("id", "user", "title", "text", "pub_date", "score")
         model = Review
         constraints = [
             models.UniqueConstraint(
-                fields=('user', 'title'),
-                name='unique_user_title'
+                fields=("user", "title"), name="unique_user_title"
             )
         ]
 
@@ -98,13 +93,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = (
-            'id',
-            'author',
-            'review',
-            'text',
-            'pub_date'
-        )
+        fields = ("id", "user", "review", "text", "pub_date")
         model = Comment
 
 
@@ -112,7 +101,7 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Genre"""
 
     class Meta:
-        fields = ('name', 'slug')
+        fields = ("name", "slug")
         model = Genre
 
 
@@ -120,7 +109,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Category"""
 
     class Meta:
-        fields = ('name', 'slug')
+        fields = ("name", "slug")
         model = Category
 
 
@@ -140,26 +129,26 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
 
         fields = (
-            'id',
-            'name',
-            'year',
-            'category',
-            'genre',
-            'description',
-            'rating'
+            "id",
+            "name",
+            "year",
+            "category",
+            "genre",
+            "description",
+            "rating",
         )
 
         model = Title
-        #extra_kwargs = {'rating': {'decimal_places': 1}}
+        # extra_kwargs = {'rating': {'decimal_places': 1}}
         validators = [
             UniqueTogetherValidator(
-                queryset=Title.objects.all(), fields=('name', 'category')
+                queryset=Title.objects.all(), fields=("name", "category")
             )
         ]
 
     def get_rating(self, obj):
         """Расчет средней score для произведения"""
-        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
+        return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
 
     def validate_year(self, value):
         """Проверка года создания произведения

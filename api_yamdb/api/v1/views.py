@@ -5,13 +5,11 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status, viewsets
-from rest_framework.decorators import api_view, permission_classes, action
-from rest_framework.filters import SearchFilter
-
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -35,9 +33,6 @@ from .serializers import (
 
 # from django_filters.rest_framework import DjangoFilterBackend
 
-from rest_framework.filters import OrderingFilter, SearchFilter
-
-
 
 def confirmation_code(self):
     user = get_object_or_404(User, username=self)
@@ -52,25 +47,26 @@ class UserViewSet(ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
 
-    filter_fields = ('username',)
+    filter_fields = ("username",)
     search_fields = ("username",)
     permission_classes = (
         IsAuthenticated,
-    #    IsAuthorOrIsStaffPermission,
+        #    IsAuthorOrIsStaffPermission,
         IsAdministrator,
     )
-    #if lookup_field == "me":
+    # if lookup_field == "me":
     #
     #    def get_queryset(self):
     #        return User.objects.get(username=self.username)
-    
+
+
 #    @detail_route(permission_classes=[IsAuthenticated], methods=['PUT', 'PATCH'])
-    #@action(methods=('PUT','GET', 'PATCH'), detail=True, url_path='me', url_name='me', permission_classes=[IsAuthenticated])
-    #@permission_classes([IsAuthenticated])
-    #def me(self, request, *args, **kwargs):
-    #    self.object = get_object_or_404(User, username=request.user.username)
-    #    serializer = self.get_serializer(self.object)
-    #    return Response(serializer.data)
+# @action(methods=('PUT','GET', 'PATCH'), detail=True, url_path='me', url_name='me', permission_classes=[IsAuthenticated])
+# @permission_classes([IsAuthenticated])
+# def me(self, request, *args, **kwargs):
+#    self.object = get_object_or_404(User, username=request.user.username)
+#    serializer = self.get_serializer(self.object)
+#    return Response(serializer.data)
 
 
 class DetailUserMeAPIView(APIView):
@@ -89,8 +85,10 @@ class DetailUserMeAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class CreateUserAPIView(APIView):
     """Регистрация пользователя"""
+
     permission_classes = (AllowAny,)
     queryset = User.objects.all()
 
@@ -119,26 +117,32 @@ class CreateUserAPIView(APIView):
 
 class GetTokenAPIView(APIView):
     """Выдача токена"""
-    permission_classes = (AllowAny, )
+
+    permission_classes = (AllowAny,)
 
     def post(self, request):
         serializer = UserTokenReceivingSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = get_object_or_404(
-                User, username=serializer.data['username'])
-           # проверяем confirmation code, если верный, выдаем токен
+                User, username=serializer.data["username"]
+            )
+            # проверяем confirmation code, если верный, выдаем токен
             if default_token_generator.check_token(
-               user, serializer.data['confirmation_code']):
+                user, serializer.data["confirmation_code"]
+            ):
                 token = RefreshToken.for_user(user)
-                return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
-            return Response({
-                'confirmation code': 'Некорректный код подтверждения!'},
-                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"token": f"{token}"}, status=status.HTTP_200_OK
+                )
+            return Response(
+                {"confirmation code": "Некорректный код подтверждения!"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
-#@api_view(["POST"])
-#@permission_classes([AllowAny])
-#def get_token(request):
+# @api_view(["POST"])
+# @permission_classes([AllowAny])
+# def get_token(request):
 #    serializer = UserTokenReceivingSerializer(data=request.data)
 #    if serializer.is_valid(raise_exception=True):
 #        user = get_object_or_404(User, username=serializer.data["username"])
@@ -151,7 +155,10 @@ class GetTokenAPIView(APIView):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorOrIsStaffPermission, IsAuthenticated,)
+    permission_classes = (
+        IsAuthorOrIsStaffPermission,
+        IsAuthenticated,
+    )
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -226,5 +233,13 @@ class TitleViewSet(viewsets.ModelViewSet):
     #    filter_backends = [DjangoFilterBackend, OrderingFilter]
     #    permission_classes = [IsAdminUser]
     filter_backends = (SearchFilter,)
-    filterset_fields = ("name", "year", "genre__slug", "category__slug",)
-    ordering_fields = ("name", "year",)
+    filterset_fields = (
+        "name",
+        "year",
+        "genre__slug",
+        "category__slug",
+    )
+    ordering_fields = (
+        "name",
+        "year",
+    )

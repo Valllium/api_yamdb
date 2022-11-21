@@ -32,6 +32,8 @@ class User(AbstractUser):
     # USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ("email",)
 
+    class Meta:
+        ordering = ("id",)
 
     @property
     def get_role(self):
@@ -39,11 +41,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.is_staff or self.role == USER_ROLES[0]
+        return self.is_staff or self.role == self.USER_ROLES[0][0]
 
     @property
     def is_moderator(self):
-        return self.role == USER_ROLES[1]
+        return self.role == self.USER_ROLES[1][0]
 
     def __str__(self):
         return self.username
