@@ -29,35 +29,21 @@ class User(AbstractUser):
     bio = models.TextField(_("Биография"), max_length=256, blank=True)
     role = models.CharField(max_length=10, choices=USER_ROLES, default="USER")
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ('username',)
-<<<<<<< HEAD
+    # USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ("email",)
+
 
     @property
     def get_role(self):
         return self.role
-    
+
     @property
     def is_admin(self):
-        return self.is_staff or self.role == USER_ROLES.ADMIN
+        return self.is_staff or self.role == USER_ROLES[0]
 
     @property
     def is_moderator(self):
-        return self.role == USER_ROLES.MODERATOR
-=======
->>>>>>> 2be2b27 (Пофиксил права)
-
-    @property
-    def get_role(self):
-        return self.role
-    
-    @property
-    def is_admin(self):
-        return self.is_staff or self.role == USER_ROLES.ADMIN
-
-    @property
-    def is_moderator(self):
-        return self.role == USER_ROLES.MODERATOR
+        return self.role == USER_ROLES[1]
 
     def __str__(self):
         return self.username
