@@ -7,7 +7,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     AllowAny,
@@ -16,8 +16,8 @@ from rest_framework.permissions import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -120,7 +120,7 @@ class GetTokenAPIView(APIView):
         if default_token_generator.check_token(
             user, serializer.validated_data.get("confirmation_code")
         ):
-            token = RefreshToken.for_user(user)
+            token = AccessToken.for_user(user)
             return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
         return Response(
             {"confirmation code": "Некорректный код подтверждения!"},
@@ -183,7 +183,6 @@ class GenreViewSet(ListCreateDeleteViewSet):
     lookup_field = "slug"
     pagination_class = LimitOffsetPagination
     permission_classes = [IsAdminOrReadOnly]
-    #   filter_backends = [SearchFilter]
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
 
