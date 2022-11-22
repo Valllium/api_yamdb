@@ -5,16 +5,14 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework import mixins, status
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
@@ -26,15 +24,15 @@ from .serializers import (
     GenreSerializer,
     ReviewSerializer,
     TitleSerializer,
+    TitleSerializerCreate,
     UserSerializer,
     UserSignupSerializer,
     UserTokenReceivingSerializer,
 )
 
-# from django_filters.rest_framework import DjangoFilterBackend
-
 
 def confirmation_code(self):
+    """Формирует код подтвержденияe-mail."""
     user = get_object_or_404(User, username=self)
     code = default_token_generator.make_token(user)
     return code
@@ -48,42 +46,28 @@ class UserViewSet(ModelViewSet):
     filter_backends = (SearchFilter,)
 
     filter_fields = ("username",)
-    search_fields = ("username",)
     permission_classes = (
         IsAuthenticated,
-        #    IsAuthorOrIsStaffPermission,
         IsAdministrator,
     )
-    # if lookup_field == "me":
-    #
-    #    def get_queryset(self):
-    #        return User.objects.get(username=self.username)
 
-
-#    @detail_route(permission_classes=[IsAuthenticated], methods=['PUT', 'PATCH'])
-# @action(methods=('PUT','GET', 'PATCH'), detail=True, url_path='me', url_name='me', permission_classes=[IsAuthenticated])
-# @permission_classes([IsAuthenticated])
-# def me(self, request, *args, **kwargs):
-#    self.object = get_object_or_404(User, username=request.user.username)
-#    serializer = self.get_serializer(self.object)
-#    return Response(serializer.data)
-
-
-class DetailUserMeAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        queryset = User.objects.get(username=request.user.username)
-        serializer = UserSerializer(queryset)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        user = User.objects.get(username=request.user.username)
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @action(
+        detail=False,
+        methods=("GET", "PATCH"),
+        permission_classes=(IsAuthenticated,),
+    )
+    def me(self, request):
+        """Функция генерации ссылки users/me/ и заменяет его на {username}.
+        Помимо этого позволяет пользователю изменять свои данные."""
+        if request.method == "GET":
+            serializer = UserSerializer(request.user)
+            return Response(serializer.data)
+        serializer = UserSerializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=request.user.role)
+        return Response(serializer.data)
 
 
 class CreateUserAPIView(APIView):
@@ -93,6 +77,7 @@ class CreateUserAPIView(APIView):
     queryset = User.objects.all()
 
     def post(self, request):
+        """Функция проверки данных и генерации писем для активации."""
         serializer = UserSignupSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -100,17 +85,14 @@ class CreateUserAPIView(APIView):
                 "Подтверждение почты",
                 (
                     f"Ваш код подтверждения для авторизации:"
-                    f"{confirmation_code(serializer.data['username'])}"
+                    f"{confirmation_code(serializer.validated_data.get('username'))}"
                 ),
                 "from@example.com",
-                [serializer.data["email"]],
+                [serializer.validated_data.get("email")],
                 fail_silently=False,
             )
             return Response(
-                {
-                    "email": serializer.data["email"],
-                    "username": serializer.data["username"],
-                },
+                serializer.validated_data,
                 status=status.HTTP_200_OK,
             )
 
@@ -124,11 +106,10 @@ class GetTokenAPIView(APIView):
         serializer = UserTokenReceivingSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = get_object_or_404(
-                User, username=serializer.data["username"]
+                User, username=serializer.validated_data.get("username")
             )
-            # проверяем confirmation code, если верный, выдаем токен
             if default_token_generator.check_token(
-                user, serializer.data["confirmation_code"]
+                user, serializer.validated_data.get("confirmation_code")
             ):
                 token = RefreshToken.for_user(user)
                 return Response(
@@ -140,20 +121,7 @@ class GetTokenAPIView(APIView):
             )
 
 
-# @api_view(["POST"])
-# @permission_classes([AllowAny])
-# def get_token(request):
-#    serializer = UserTokenReceivingSerializer(data=request.data)
-#    if serializer.is_valid(raise_exception=True):
-#        user = get_object_or_404(User, username=serializer.data["username"])
-#        confirmation_code = serializer.data["confirmation_code"]
-#        if not default_token_generator.check_token(user, confirmation_code):
-#            return Response(serializer.errors, status=status.HTTP_403_FORBIDDEN)
-#        token = RefreshToken.for_user(user).access_token
-#    return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
-
-
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (
         IsAuthorOrIsStaffPermission,
@@ -176,7 +144,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     #     )
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorOrIsStaffPermission,)
     pagination_class = LimitOffsetPagination
@@ -192,7 +160,16 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user, review=review)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class ListCreateDeleteViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
+    pass
+
+
+class GenreViewSet(ListCreateDeleteViewSet):
     """ViewSet для эндпойнта /genre/
     c пагинацией и поиском по полю name"""
 
@@ -200,16 +177,13 @@ class GenreViewSet(viewsets.ModelViewSet):
     serializer_class = GenreSerializer
     lookup_field = "slug"
     pagination_class = LimitOffsetPagination
-    permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
+    permission_classes = [IsAuthenticated & IsAdministrator | ReadOnly]
     #   filter_backends = [SearchFilter]
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
 
 
-#    permission_classes = [IsAdminUser]
-
-
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(ListCreateDeleteViewSet):
     """ViewSet для эндпойнта /Category/
     c пагинацией и поиском по полю name"""
 
@@ -219,26 +193,55 @@ class CategoryViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
-    permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
+    permission_classes = [IsAuthenticated & IsAdministrator | ReadOnly]
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class ListCreateDeleteViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
+    pass
+
+
+class TitleViewSet(ViewSet):
     """ViewSet для эндпойнта /Title/
     c пагинацией и фильтрацией  по всем полям"""
 
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    pagination_class = LimitOffsetPagination
+    # queryset = Title.objects.all()
+    # serializer_class = TitleSerializer
+    # pagination_class = LimitOffsetPagination
     #    filter_backends = [DjangoFilterBackend, OrderingFilter]
     #    permission_classes = [IsAdminUser]
-    filter_backends = (SearchFilter,)
-    filterset_fields = (
-        "name",
-        "year",
-        "genre__slug",
-        "category__slug",
-    )
-    ordering_fields = (
-        "name",
-        "year",
-    )
+    # filter_backends = (SearchFilter,)
+    # filterset_fields = (
+    #     "name",
+    #   "year",
+    #    "genre__slug",
+    #     "category__slug",
+    # )
+    # ordering_fields = (
+    #     "name",
+    #     "year",
+    # )
+
+    def list(self, request):
+        queryset = Title.objects.all()
+        serializer = TitleSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, id=None):
+        queryset = Title.objects.all()
+        title = get_object_or_404(queryset, id=pk)
+        serializer = TitleSerializer(title)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = TitleSerializerCreate(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # return Response(serializer.data, status=status.HTTP_201_CREATED)

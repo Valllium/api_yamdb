@@ -28,18 +28,12 @@ class UserSerializer(ModelSerializer):
             "bio",
             "role",
         )
-        read_only_fields = ("role",)
+        if not User.is_admin or not User.is_moderator:
+            read_only_fields = ("role",)
 
 
 class UserSignupSerializer(ModelSerializer):
     """Сериализатор регистрации."""
-
-    def validate_username(self, attrs):
-        """Метод валидации пользователя."""
-
-        if attrs == "me":
-            raise ValidationError("Попробуй другой username")
-        return attrs
 
     class Meta:
         model = User
@@ -47,6 +41,13 @@ class UserSignupSerializer(ModelSerializer):
             "email",
             "username",
         )
+
+    def validate_username(self, attrs):
+        """Метод валидации пользователя."""
+
+        if attrs == "me":
+            raise ValidationError("Попробуй другой username")
+        return attrs
 
 
 class UserTokenReceivingSerializer(ModelSerializer):
@@ -89,7 +90,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор комментария"""
-    
+
     author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
         read_only=True,
@@ -124,9 +125,8 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         slug_field="slug", many=True, queryset=Genre.objects.all()
     )
-    category = serializers.SlugRelatedField(
-        slug_field="slug", queryset=Category.objects.all()
-    )
+    category = CategorySerializer(read_only=True)
+
     description = serializers.CharField(max_length=400, required=False)
     rating = serializers.SerializerMethodField(read_only=True)
 
@@ -161,3 +161,33 @@ class TitleSerializer(serializers.ModelSerializer):
         if not (1000 < value <= current_year):
             raise serializers.ValidationError(_("Проверьте год создания!"))
         return value
+
+
+class TitleSerializerCreate(serializers.ModelSerializer):
+    """Сериализатор для создания об'ект  Title"""
+
+    genre = serializers.SlugRelatedField(
+        slug_field="slug", many=True, queryset=Genre.objects.all()
+    )
+    category = serializers.SlugRelatedField(
+        slug_field="slug", queryset=Genre.objects.all()
+    )
+
+    description = serializers.CharField(max_length=400, required=False)
+
+    class Meta:
+
+        fields = (
+            "name",
+            "year",
+            "category",
+            "genre",
+            "description",
+        )
+
+        model = Title
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Title.objects.all(), fields=("name", "category")
+            )
+        ]
