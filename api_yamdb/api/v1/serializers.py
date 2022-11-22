@@ -23,6 +23,10 @@ class UserSerializer(ModelSerializer):
     """Сериализатор пользователя."""
 
     class Meta:
+        """
+        Мета модель определяющая поля выдачи.
+        Определяет доступ к полю role.
+        """
         model = User
         fields = (
             "username",
@@ -40,6 +44,8 @@ class UserSignupSerializer(ModelSerializer):
     """Сериализатор регистрации."""
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
+
         model = User
         fields = (
             "email",
@@ -61,11 +67,13 @@ class UserTokenReceivingSerializer(ModelSerializer):
     username = CharField(max_length=200, required=True)
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
         model = User
         fields = ("username", "confirmation_code")
 
 
 class ValueFromViewKeyWordArgumentsDefault:
+    """Класс подстановки значений из вьюхи."""
     requires_context = True
 
     def __init__(self, context_key):
@@ -92,6 +100,7 @@ class ReviewSerializer(ModelSerializer):
     score = ChoiceField(choices=CHOICES)
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
         fields = (
             "id",
             "author",
@@ -121,6 +130,7 @@ class CommentSerializer(ModelSerializer):
     )
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
         fields = (
             "id",
             "author",
@@ -135,6 +145,7 @@ class GenreSerializer(ModelSerializer):
     """Сериализатор для модели Genre"""
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
         fields = ("name", "slug")
         model = Genre
 
@@ -143,6 +154,7 @@ class CategorySerializer(ModelSerializer):
     """Сериализатор для модели Category"""
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
         fields = ("name", "slug")
         model = Category
 
@@ -155,6 +167,7 @@ class TitleSerializer(ModelSerializer):
     rating = SerializerMethodField(read_only=True)
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
         fields = (
             "id",
             "name",
@@ -183,6 +196,7 @@ class TitleSerializerCreate(TitleSerializer):
     )
 
     class Meta:
+        """Мета модель определяющая поля выдачи."""
         fields = (
             "id",
             "name",

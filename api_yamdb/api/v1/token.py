@@ -13,6 +13,7 @@ def confirmation_code(self):
 
 
 def sending_registration_code(self):
+    """Формирует и отправляет письмо с кодом подтверждения."""
     send_mail(
         "Подтверждение почты",
         (
