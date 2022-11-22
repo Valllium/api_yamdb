@@ -5,6 +5,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -38,6 +39,7 @@ from .serializers import (
     UserSignupSerializer,
     UserTokenReceivingSerializer,
 )
+from .filters import TitleFilter
 
 
 def confirmation_code(self):
@@ -253,16 +255,12 @@ class CategoryViewSet(ListCreateDeleteViewSet):
 
 class TitleViewSet(ModelViewSet):
     """Отображение действий с произведениями"""
-
+    http_method_names = ["get", "post", "delete", "patch"]
     permission_classes = [IsAdminOrReadOnly]
     queryset = Title.objects.all()
-    filter_backends = (SearchFilter,)
-    filterset_fields = (
-        "name",
-        "year",
-        "genre__slug",
-        "category__slug",
-    )
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
+
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
