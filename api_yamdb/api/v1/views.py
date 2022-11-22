@@ -9,7 +9,7 @@ from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, ViewSet
@@ -17,7 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
-from .permission import IsAdministrator, IsAuthorOrIsStaffPermission, ReadOnly
+from .permission import IsAdministrator, IsAuthorOrIsStaffPermission, ReadOnly, IsAdminOrReadOnly
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -123,10 +123,7 @@ class GetTokenAPIView(APIView):
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (
-        IsAuthorOrIsStaffPermission,
-        IsAuthenticated,
-    )
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -147,7 +144,7 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrIsStaffPermission,)
+    permission_classes = [IsAuthorOrIsStaffPermission]
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -178,7 +175,7 @@ class GenreViewSet(ListCreateDeleteViewSet):
     serializer_class = GenreSerializer
     lookup_field = "slug"
     pagination_class = LimitOffsetPagination
-    permission_classes = [IsAuthenticated & IsAdministrator | ReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     #   filter_backends = [SearchFilter]
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
@@ -197,18 +194,18 @@ class CategoryViewSet(ListCreateDeleteViewSet):
     permission_classes = [IsAuthenticated & IsAdministrator | ReadOnly]
 
 
-class ListCreateDeleteViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    GenericViewSet,
-):
-    pass
+#class ListCreateDeleteViewSet(
+#    mixins.ListModelMixin,
+#    mixins.CreateModelMixin,
+#    mixins.DestroyModelMixin,
+#    GenericViewSet,
+#):
+#    pass
 
 
-class TitleViewSet(ViewSet):
-    """ViewSet для эндпойнта /Title/
-    c пагинацией и фильтрацией  по всем полям"""
+#class TitleViewSet(ViewSet):
+#    """ViewSet для эндпойнта /Title/
+#    c пагинацией и фильтрацией  по всем полям"""
 
     # queryset = Title.objects.all()
     # serializer_class = TitleSerializer
@@ -227,22 +224,39 @@ class TitleViewSet(ViewSet):
     #     "year",
     # )
 
-    def list(self, request):
-        queryset = Title.objects.all()
-        serializer = TitleSerializer(queryset, many=True)
-        return Response(serializer.data)
+    #def list(self, request):
+    #    queryset = Title.objects.all()
+    #    serializer = TitleSerializer(queryset, many=True)
+    #    return Response(serializer.data)
 
-    def retrieve(self, request, id=None):
-        queryset = Title.objects.all()
-        title = get_object_or_404(queryset, id=pk)
-        serializer = TitleSerializer(title)
-        return Response(serializer.data)
+    #def retrieve(self, request, id=None):
+    #    queryset = Title.objects.all()
+    #    title = get_object_or_404(queryset, id=pk)
+    #    serializer = TitleSerializer(title)
+    #    return Response(serializer.data)
 
-    def create(self, request):
-        serializer = TitleSerializerCreate(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #def create(self, request):
+    #    serializer = TitleSerializerCreate(data=request.data)
+    #    if serializer.is_valid():
+    #        serializer.save()
+    #        return Response(serializer.data, status=status.HTTP_200_OK)
+    #    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class TitleViewSet(ModelViewSet):
+    """Отображение действий с произведениями"""
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = Title.objects.all()
+    filter_backends = (SearchFilter,)
+    filterset_fields = (
+        "name",
+        "year",
+        "genre__slug",
+        "category__slug",
+    )
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleSerializer
+        return TitleSerializerCreate
