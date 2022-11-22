@@ -11,7 +11,7 @@ from rest_framework import serializers
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, ValidationError
 
-# from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
 from users.models import User
 
@@ -62,6 +62,19 @@ class UserTokenReceivingSerializer(ModelSerializer):
         fields = ("username", "confirmation_code")
 
 
+class ValueFromViewKeyWordArgumentsDefault:
+    requires_context = True
+
+    def __init__(self, context_key):
+        self.key = context_key
+
+    def __call__(self, serializer_field):
+        return serializer_field.context.get('view').kwargs.get(self.key)
+
+    def __repr__(self):
+        return '%s()' % self.__class__.__name__
+
+
 class ReviewSerializer(ModelSerializer):
     """Сериализатор отзыва"""
 
@@ -70,14 +83,25 @@ class ReviewSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
+    title = serializers.HiddenField(
+        default=ValueFromViewKeyWordArgumentsDefault('title_id'),
+    )
     score = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
-        fields = ("id", "author", "title", "text", "pub_date", "score")
+        fields = (
+            "id",
+            "author",
+            "title",
+            "text",
+            "pub_date",
+            "score",
+        )
         model = Review
-        constraints = [
-            models.UniqueConstraint(
-                fields=("auhtor", "title"), name="unique_auhtor_title"
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('author', 'title')
             )
         ]
 
@@ -90,9 +114,18 @@ class CommentSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
+    review = serializers.HiddenField(
+        default=ValueFromViewKeyWordArgumentsDefault('review_id'),
+    )
 
     class Meta:
-        fields = ("id", "auhtor", "review", "text", "pub_date")
+        fields = (
+            "id",
+            "author",
+            "review",
+            "text",
+            "pub_date",
+        )
         model = Comment
 
 
