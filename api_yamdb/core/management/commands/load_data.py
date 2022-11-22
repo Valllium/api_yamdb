@@ -1,11 +1,10 @@
+"""Команды для работы с базой данных."""
 import csv
-import os
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 from users.models import User
 
-"""Команда для загрузки данных из csv файлов"""
 
 DATA = {
     User: "static/data/users.csv",
@@ -19,6 +18,8 @@ DATA = {
 
 
 class Command(BaseCommand):
+    """Команда для загрузки данных из csv файлов"""
+
     help = "load data from csv"
 
     def handle(self, *args, **options):

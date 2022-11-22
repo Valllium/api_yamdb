@@ -4,7 +4,6 @@ from core.models import CreatedModel
 from django.core.validators import (
     MaxValueValidator,
     MinValueValidator,
-    RegexValidator,
 )
 from django.db import models
 from django.utils.translation import gettext as _
@@ -81,6 +80,8 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
+    """Модель ревью."""
+
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="reviews"
     )
@@ -99,13 +100,14 @@ class Review(models.Model):
         ordering = ("-pub_date", "score")
         constraints = [
             models.UniqueConstraint(
-                fields=["title", "author"],
-                name="unique_review_title"
+                fields=["title", "author"], name="unique_review_title"
             )
         ]
 
 
 class Comment(models.Model):
+    """Модель комментариев."""
+
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="comments"
     )
