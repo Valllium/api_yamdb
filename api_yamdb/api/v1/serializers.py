@@ -10,6 +10,7 @@ from rest_framework import serializers
 
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.serializers import ModelSerializer, ValidationError
+
 # from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
 from users.models import User
@@ -55,13 +56,6 @@ class UserTokenReceivingSerializer(ModelSerializer):
 
     confirmation_code = serializers.CharField(max_length=200, required=True)
     username = serializers.CharField(max_length=200, required=True)
-
-    def validate_username(self, attrs):
-        if not User.objects.filter(username=attrs).exists():
-            raise ValidationError(
-                "Пользователь не существует, зарегистрируйтесь!"
-            )
-        return attrs
 
     class Meta:
         model = User
@@ -118,7 +112,7 @@ class CategorySerializer(ModelSerializer):
         model = Category
 
 
-#class TitleSerializer(ModelSerializer):
+# class TitleSerializer(ModelSerializer):
 #    """Сериализатор для модели Title c валидацией введенного
 #    года и проверкой уникальности произведение-категория"""##
 
@@ -132,7 +126,7 @@ class CategorySerializer(ModelSerializer):
 
 #    class Meta:
 
- #       fields = (
+#       fields = (
 #            "id",
 #            "name",
 #            "year",
@@ -143,7 +137,7 @@ class CategorySerializer(ModelSerializer):
 #        )
 
 #        model = Title
-        # extra_kwargs = {'rating': {'decimal_places': 1}}#
+# extra_kwargs = {'rating': {'decimal_places': 1}}#
 #        validators = [
 #            UniqueTogetherValidator(
 #                queryset=Title.objects.all(), fields=("name", "category")
@@ -163,7 +157,7 @@ class CategorySerializer(ModelSerializer):
 #        return value
 
 
-#class TitleSerializerCreate(ModelSerializer):
+# class TitleSerializerCreate(ModelSerializer):
 #    """Сериализатор для создания об'ект  Title"""
 
 #    genre = serializers.SlugRelatedField(
@@ -191,6 +185,7 @@ class CategorySerializer(ModelSerializer):
 #            )
 #        ]
 
+
 class TitleSerializer(ModelSerializer):
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
@@ -207,18 +202,15 @@ class TitleSerializer(ModelSerializer):
             "rating",
         )
         model = Title
-        ordering = ['-id']
+        ordering = ["-id"]
 
 
 class TitleSerializerCreate(ModelSerializer):
     genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
-        slug_field='slug',
-        many=True
+        queryset=Genre.objects.all(), slug_field="slug", many=True
     )
     category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug'
+        queryset=Category.objects.all(), slug_field="slug"
     )
 
     class Meta:
@@ -231,4 +223,4 @@ class TitleSerializerCreate(ModelSerializer):
             "description",
         )
         model = Title
-        ordering = ['-id']
+        ordering = ["-id"]
