@@ -23,7 +23,7 @@ class User(AbstractUser):
         null=False,
     )
     bio = models.TextField(_("Биография"), max_length=256, blank=True)
-    role = models.CharField(max_length=16, choices=USER_ROLES, default="USER")
+    role = models.CharField(max_length=16, choices=USER_ROLES, default="user")
 
     REQUIRED_FIELDS = ("email",)
 

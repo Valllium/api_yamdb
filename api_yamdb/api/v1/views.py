@@ -123,8 +123,7 @@ class GetTokenAPIView(APIView):
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    pagination_class = LimitOffsetPagination
+    permission_classes = [IsAuthorOrIsStaffPermission]
 
     def get_queryset(self):
         title_id = self.kwargs.get("title_id")
