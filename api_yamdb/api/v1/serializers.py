@@ -5,6 +5,7 @@ import datetime
 
 from django.db import models
 from django.db.models import Avg
+from django.http import request
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -118,15 +119,48 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Title c валидацией введенного
     года и проверкой уникальности произведение-категория"""
 
     genre = serializers.SlugRelatedField(
-        slug_field="slug", many=True, queryset=Genre.objects.all()
-    )
+        slug_field="slug", many=True, queryset=Genre.objects.all())
     category = CategorySerializer(read_only=True)
-
     description = serializers.CharField(max_length=400, required=False)
     rating = serializers.SerializerMethodField(read_only=True)
 
@@ -142,51 +176,36 @@ class TitleSerializer(serializers.ModelSerializer):
             "rating",
         )
 
-        model = Title
-        # extra_kwargs = {'rating': {'decimal_places': 1}}
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Title.objects.all(), fields=("name", "category")
-            )
-        ]
 
     def get_rating(self, obj):
         """Расчет средней score для произведения"""
         return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
 
+
+class TitleCreateSerializer(TitleSerializer):
+
+    genre = serializers.SlugRelatedField(
+       slug_field="slug", many=True, queryset=Genre.objects.all())
+    category = serializers.SlugRelatedField(queryset=Category.objects.all(), slug_field="slug")
+    description = serializers.CharField(max_length=400, required=False)
+
     def validate_year(self, value):
-        """Проверка года создания произведения
-        (диапозон 1000 до настоящего года)"""
         current_year = int(datetime.datetime.today().year)
         if not (1000 < value <= current_year):
             raise serializers.ValidationError(_("Проверьте год создания!"))
         return value
 
-class TitleSerializerCreate(serializers.ModelSerializer):
-    """Сериализатор для создания об'ект  Title"""
-
-    genre = serializers.SlugRelatedField(
-        slug_field="slug", many=True, queryset=Genre.objects.all()
-    )
-    category = serializers.SlugRelatedField(
-        slug_field="slug", queryset=Genre.objects.all()
-    )
-
-    description = serializers.CharField(max_length=400, required=False)
-
     class Meta:
-
-        fields = (
-            "name",
-            "year",
-            "category",
-            "genre",
-            "description",
-        )
-
+        fields = ["id",
+                  "name",
+                  "year",
+                  "category",
+                  "genre",
+                  "description"]
+        read_only_fields = ["id"]
         model = Title
         validators = [
-            UniqueTogetherValidator(
-                queryset=Title.objects.all(), fields=("name", "category")
-            )
+           UniqueTogetherValidator(
+               queryset=Title.objects.all(), fields=("name", "category")
+          )
         ]

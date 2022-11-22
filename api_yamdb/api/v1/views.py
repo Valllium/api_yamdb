@@ -4,17 +4,18 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
+from django.http import request
 from django.shortcuts import get_object_or_404
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet, GenericViewSet, ViewSet
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
@@ -27,10 +28,10 @@ from .serializers import (
     GenreSerializer,
     ReviewSerializer,
     TitleSerializer,
+    TitleCreateSerializer,
     UserSerializer,
     UserSignupSerializer,
     UserTokenReceivingSerializer,
-    TitleSerializerCreate,
 )
 
 # from django_filters.rest_framework import DjangoFilterBackend
@@ -142,12 +143,12 @@ class GetTokenAPIView(APIView):
 #    return Response({"token": f"{token}"}, status=status.HTTP_200_OK)
 
 
-class ReviewViewSet(ModelViewSet):
+class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (
-        IsAuthorOrIsStaffPermission,
-        IsAuthenticated,
-    )
+   # permission_classes = (
+   #     IsAuthorOrIsStaffPermission,
+    #    IsAuthenticated,
+    #)
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -160,16 +161,16 @@ class ReviewViewSet(ModelViewSet):
         title = get_object_or_404(Title, id=title_id)
         serializer.save(user=self.request.user, title=title)
 
-    def get_avg_rating(self):
-        return Review.objects.filter(title_id=self.title.id).aggregate(
-            Avg("review__score")
-        )
+    #def get_avg_rating(self):
+      #  return Review.objects.filter(title_id=self.title.id).aggregate(
+       #     Avg("review__score")
+        #)
 
 
 
 
 
-class CommentViewSet(ModelViewSet):
+class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     #permission_classes = (IsAuthorOrIsStaffPermission,)
     pagination_class = LimitOffsetPagination
@@ -184,8 +185,76 @@ class CommentViewSet(ModelViewSet):
         review = get_object_or_404(Review, id=review_id)
         serializer.save(user=self.request.user, review=review)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class ListCreateDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                              mixins.DestroyModelMixin, GenericViewSet):
+                              mixins.DestroyModelMixin, viewsets.GenericViewSet):
     pass
 
 class GenreViewSet(ListCreateDeleteViewSet):
@@ -196,7 +265,7 @@ class GenreViewSet(ListCreateDeleteViewSet):
     serializer_class = GenreSerializer
     lookup_field = "slug"
     pagination_class = LimitOffsetPagination
-    #permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
+    #permission_classes = [IsAdminUser | ReadOnly]
     #   filter_backends = [SearchFilter]
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
@@ -212,19 +281,27 @@ class CategoryViewSet(ListCreateDeleteViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
-    #permission_classes = [IsAuthenticated & IsAdminUser | ReadOnly]
+    #permission_classes = [IsAdminUser | ReadOnly]
 
-class ListCreateDeleteViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                              mixins.DestroyModelMixin, GenericViewSet):
-    pass
 
-class TitleViewSet(ViewSet):
-    """ViewSet для эндпойнта /Title/
+
+
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """ViewSet для эндпойнта /Titles/
     c пагинацией и фильтрацией  по всем полям"""
+    http_method_names = ["get", "delete", "post", "patch"]
+    pagination_class = LimitOffsetPagination
+    queryset = Title.objects.all()
 
-    #queryset = Title.objects.all()
-    #serializer_class = TitleSerializer
-    #pagination_class = LimitOffsetPagination
+    def get_serializer_class(self):
+        if self.action not in ('list', 'retrieve'):
+            return TitleCreateSerializer
+        return TitleSerializer
+
+
+
     #    filter_backends = [DjangoFilterBackend, OrderingFilter]
     #    permission_classes = [IsAdminUser]
     #filter_backends = (SearchFilter,)
@@ -234,28 +311,26 @@ class TitleViewSet(ViewSet):
     #    "genre__slug",
    #     "category__slug",
    # )
-   # ordering_fields = (
-   #     "name",
-   #     "year",
+    #ordering_fields = (
+     #   "name",
+   #    "year",
    # )
 
-    def list(self, request):
-        queryset = Title.objects.all()
-        serializer = TitleSerializer(queryset, many=True)
-        return Response(serializer.data)
+  #  def list(self, request):
+   ##     serializer = TitleSerializer(queryset, many=True)
+    #    return Response(serializer.data)
 
-    def retrieve(self, request, id=None):
-        queryset = Title.objects.all()
-        title = get_object_or_404(queryset, id=pk)
-        serializer = TitleSerializer(title)
-        return Response(serializer.data)
+  #  def retrieve(self, request, pk=None):
+  #      queryset = Title.objects.all()
+   #     title = get_object_or_404(queryset, pk=pk)
+   #     serializer = TitleSerializer(title)
+   #     return Response(serializer.data)
 
-    def create(self, request):
-        serializer = TitleSerializerCreate(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   # def create(self, request):
+   #    serializer = TitleSerializerCreate(data=request.data)
+    #    if serializer.is_valid():
+    #        serializer.save()
+     #       return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-       # return Response(serializer.data, status=status.HTTP_201_CREATED)

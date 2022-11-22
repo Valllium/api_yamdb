@@ -20,8 +20,6 @@ class Category(CreatedModel):
         verbose_name = _("Категория")
         verbose_name_plural = _("Категории")
 
-    def __str__(self):
-        return self.slug, self.name
 
 
 class Genre(CreatedModel):
