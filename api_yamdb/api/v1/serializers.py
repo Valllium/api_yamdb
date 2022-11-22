@@ -189,7 +189,7 @@ class CategorySerializer(ModelSerializer):
 class TitleSerializer(ModelSerializer):
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.FloatField(read_only=True)
+    rating = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         fields = (
@@ -204,8 +204,12 @@ class TitleSerializer(ModelSerializer):
         model = Title
         ordering = ["-id"]
 
+    def get_rating(self, obj):
+        """Расчет средней score для произведения"""
+        return obj.reviews.all().aggregate(Avg("score"))["score__avg"]
 
-class TitleSerializerCreate(ModelSerializer):
+
+class TitleSerializerCreate(TitleSerializer):
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(), slug_field="slug", many=True
     )
@@ -223,4 +227,5 @@ class TitleSerializerCreate(ModelSerializer):
             "description",
         )
         model = Title
+
         ordering = ["-id"]
