@@ -1,3 +1,4 @@
+"""Модуль моделей."""
 from datetime import datetime
 
 from core.models import CreatedModel

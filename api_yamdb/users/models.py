@@ -29,22 +29,28 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ("email",)
 
     class Meta:
+        verbose_name = _("Пользователь")
+        verbose_name_plural = _("Пользователи")
         ordering = ("id",)
 
     @property
     def get_role(self):
+        """Метод возвращает роль пользователя."""
         return self.role
 
     @property
     def is_user(self):
+        """Метод подтверждает роль пользователя USER."""
         return self.role == USER
 
     @property
     def is_admin(self):
+        """Метод подтверждает роль пользователя ADMIN."""
         return self.role == ADMIN
 
     @property
     def is_moderator(self):
+        """Метод подтверждает роль пользователя MODERATOR."""
         return self.role == MODERATOR
 
     def __str__(self):
