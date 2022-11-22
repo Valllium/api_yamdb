@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -119,6 +120,7 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=10),
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
