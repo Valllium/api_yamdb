@@ -7,7 +7,7 @@ from django.core.validators import (
     MinValueValidator,
 )
 from django.db import models
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from users.models import User
 
 CHOICES = [(i, i) for i in range(1, 11)]
@@ -91,13 +91,13 @@ class Review(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        "Дата создания отзыва", auto_now_add=True, db_index=True
+        _("Дата создания отзыва"), auto_now_add=True, db_index=True
     )
     score = models.IntegerField(default=0, choices=CHOICES)
 
     class Meta:
-        verbose_name = "Отзыв"
-        verbose_name_plural = "Отзывы"
+        verbose_name = _("Отзыв")
+        verbose_name_plural = _("Отзывы")
         ordering = ("-pub_date", "score")
         constraints = [
             models.UniqueConstraint(
@@ -117,7 +117,7 @@ class Comment(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        "Дата комментария к отзыву", auto_now_add=True, db_index=True
+        _("Дата комментария к отзыву"), auto_now_add=True, db_index=True
     )
 
     class Meta:
