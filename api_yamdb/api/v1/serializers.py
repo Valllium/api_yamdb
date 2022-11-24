@@ -7,7 +7,6 @@ from rest_framework.serializers import (
     CharField,
     ChoiceField,
     CurrentUserDefault,
-    HiddenField,
     ModelSerializer,
     SerializerMethodField,
     SlugRelatedField,
@@ -37,8 +36,6 @@ class UserSerializer(ModelSerializer):
             "bio",
             "role",
         )
-        if not User.is_admin or not User.is_moderator:
-            read_only_fields = ("role",)
 
 
 class UserSignupSerializer(ModelSerializer):
@@ -74,7 +71,6 @@ class UserTokenReceivingSerializer(ModelSerializer):
         fields = ("username", "confirmation_code")
 
 
-
 class ReviewSerializer(ModelSerializer):
     """Сериализатор отзыва"""
 
@@ -102,14 +98,14 @@ class ReviewSerializer(ModelSerializer):
         model = Review
 
     def validate(self, data):
-        request = self.context['request']
+        request = self.context["request"]
         if request.method == "POST":
             if Review.objects.filter(
                 author=request.user,
-                title=request.parser_context['kwargs']['title_id']
+                title=request.parser_context["kwargs"]["title_id"],
             ).exists():
                 raise ValidationError(
-                    'Невозможно оставить больше одного отзыва на произведение!'
+                    "Невозможно оставить больше одного отзыва на произведение!"
                 )
         return data
 
