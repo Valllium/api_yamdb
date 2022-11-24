@@ -2,10 +2,7 @@
 from datetime import datetime
 
 from core.models import CreatedModel
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-)
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
 from users.models import User
@@ -113,6 +110,12 @@ class Review(models.Model):
                 fields=["title", "author"], name="unique_review_title"
             )
         ]
+<<<<<<< HEAD
+=======
+
+    def __str__(self):
+        return f"{self.author} {self.text}"
+>>>>>>> ad6d2e5 (Сведено)
 
 <<<<<<< HEAD
 
