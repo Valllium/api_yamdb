@@ -3,30 +3,29 @@
 """
 
 from django.db.models import Avg
-
 from rest_framework.serializers import (
-    ModelSerializer,
-    ValidationError,
     CharField,
-    SlugRelatedField,
-    CurrentUserDefault,
-    HiddenField,
     ChoiceField,
+    CurrentUserDefault,
+    ModelSerializer,
     SerializerMethodField,
+    ValidationError
 )
-from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
 class UserSerializer(ModelSerializer):
     """Сериализатор пользователя."""
 
+    role = ChoiceField(choices=User.ROLES, default="user")
+
     class Meta:
         """
         Мета модель определяющая поля выдачи.
         Определяет доступ к полю role.
         """
+
         model = User
         fields = (
             "username",
@@ -36,8 +35,6 @@ class UserSerializer(ModelSerializer):
             "bio",
             "role",
         )
-        if not User.is_admin or not User.is_moderator:
-            read_only_fields = ("role",)
 
 
 class UserSignupSerializer(ModelSerializer):
@@ -55,7 +52,7 @@ class UserSignupSerializer(ModelSerializer):
     def validate_username(self, attrs):
         """Метод валидации пользователя."""
 
-        if attrs == "me":
+        if attrs.lower == "me":
             raise ValidationError("Попробуй другой username")
         return attrs
 
@@ -68,22 +65,9 @@ class UserTokenReceivingSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         model = User
         fields = ("username", "confirmation_code")
-
-
-class ValueFromViewKeyWordArgumentsDefault:
-    """Класс подстановки значений из вьюхи."""
-    requires_context = True
-
-    def __init__(self, context_key):
-        self.key = context_key
-
-    def __call__(self, serializer_field):
-        return serializer_field.context.get("view").kwargs.get(self.key)
-
-    def __repr__(self):
-        return "%s()" % self.__class__.__name__
 
 
 class ReviewSerializer(ModelSerializer):
@@ -94,13 +78,14 @@ class ReviewSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
-    title = HiddenField(
-        default=ValueFromViewKeyWordArgumentsDefault("title_id"),
+    title = SlugRelatedField(
+        read_only=True,
+        slug_field="id",
     )
-    score = ChoiceField(choices=CHOICES)
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "author",
@@ -110,11 +95,18 @@ class ReviewSerializer(ModelSerializer):
             "score",
         )
         model = Review
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(), fields=("author", "title")
-            )
-        ]
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        if request.method == "POST":
+            if Review.objects.filter(
+                author=request.user,
+                title=request.parser_context["kwargs"]["title_id"],
+            ).exists():
+                raise ValidationError(
+                    "Невозможно оставить больше одного отзыва на произведение!"
+                )
+        return attrs
 
 
 class CommentSerializer(ModelSerializer):
@@ -125,12 +117,14 @@ class CommentSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
-    review = HiddenField(
-        default=ValueFromViewKeyWordArgumentsDefault("review_id"),
+    review = SlugRelatedField(
+        read_only=True,
+        slug_field="id",
     )
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "author",
@@ -146,6 +140,7 @@ class GenreSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = ("name", "slug")
         model = Genre
 
@@ -155,6 +150,7 @@ class CategorySerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = ("name", "slug")
         model = Category
 
@@ -168,6 +164,7 @@ class TitleSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "name",
@@ -197,6 +194,7 @@ class TitleSerializerCreate(TitleSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "name",
@@ -208,3 +206,66 @@ class TitleSerializerCreate(TitleSerializer):
         model = Title
 
         ordering = ["-id"]
+
+
+class ReviewSerializer(ModelSerializer):
+    """Сериализатор отзыва"""
+
+    author = SlugRelatedField(
+        default=CurrentUserDefault(),
+        read_only=True,
+        slug_field="username",
+    )
+    title = SlugRelatedField(
+        read_only=True,
+        slug_field="name",
+    )
+
+    class Meta:
+        """Мета модель определяющая поля выдачи."""
+        fields = (
+            "id",
+            "author",
+            "title",
+            "text",
+            "pub_date",
+            "score",
+        )
+        model = Review
+
+    def validate(self, data):
+        request = self.context['request']
+        if request.method == "POST":
+            if Review.objects.filter(
+                author=request.user,
+                title=request.parser_context['kwargs']['title_id']
+            ).exists():
+                raise ValidationError(
+                    'Невозможно оставить больше одного отзыва на произведение!'
+                )
+        return data
+
+
+class CommentSerializer(ModelSerializer):
+    """Сериализатор комментария"""
+
+    author = SlugRelatedField(
+        default=CurrentUserDefault(),
+        read_only=True,
+        slug_field="username",
+    )
+    review = SlugRelatedField(
+        read_only=True,
+        slug_field="id",
+    )
+
+    class Meta:
+        """Мета модель определяющая поля выдачи."""
+        fields = (
+            "id",
+            "author",
+            "review",
+            "text",
+            "pub_date",
+        )
+        model = Comment

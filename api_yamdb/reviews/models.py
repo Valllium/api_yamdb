@@ -2,15 +2,10 @@
 from datetime import datetime
 
 from core.models import CreatedModel
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-)
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 from users.models import User
-
-CHOICES = [(i, i) for i in range(1, 11)]
 
 
 class Category(CreatedModel):
@@ -21,7 +16,7 @@ class Category(CreatedModel):
         verbose_name_plural = _("Категории")
 
     def __str__(self):
-        return self.slug, self.name
+        return self.slug
 
 
 class Genre(CreatedModel):
@@ -67,7 +62,7 @@ class Title(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name}, {self.year}"
+        return {self.name}
 
 
 class GenreTitle(models.Model):
@@ -84,26 +79,40 @@ class Review(models.Model):
     """Модель ревью."""
 
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="reviews"
+        User,
+        on_delete=models.CASCADE,
+        related_name="reviews",
     )
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name="reviews"
+        Title,
+        on_delete=models.CASCADE,
+        related_name="reviews",
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        "Дата создания отзыва", auto_now_add=True, db_index=True
+        _("Дата создания отзыва"), auto_now_add=True, db_index=True
     )
-    score = models.IntegerField(default=0, choices=CHOICES)
+    score = models.PositiveSmallIntegerField(
+        default=0,
+        db_index=True,
+        validators=[
+            MaxValueValidator(10, message=_("Максимальная оценка - 10")),
+            MinValueValidator(1, message=_("Минимальная оценка - 1")),
+        ],
+    )
 
     class Meta:
-        verbose_name = "Отзыв"
-        verbose_name_plural = "Отзывы"
+        verbose_name = _("Отзыв")
+        verbose_name_plural = _("Отзывы")
         ordering = ("-pub_date", "score")
         constraints = [
             models.UniqueConstraint(
                 fields=["title", "author"], name="unique_review_title"
             )
         ]
+
+    def __str__(self):
+        return f"{self.text}"[:15]
 
 
 class Comment(models.Model):
@@ -117,9 +126,12 @@ class Comment(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        "Дата комментария к отзыву", auto_now_add=True, db_index=True
+        _("Дата комментария к отзыву"), auto_now_add=True, db_index=True
     )
 
     class Meta:
         verbose_name = _("Коментарий")
         verbose_name_plural = _("Коментарии")
+
+    def __str__(self):
+        return f"{self.text}"[:15]
