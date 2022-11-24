@@ -97,7 +97,7 @@ class ReviewSerializer(ModelSerializer):
         )
         model = Review
 
-    def validate(self, data):
+    def validate(self, attrs):
         request = self.context["request"]
         if request.method == "POST":
             if Review.objects.filter(
@@ -107,7 +107,7 @@ class ReviewSerializer(ModelSerializer):
                 raise ValidationError(
                     "Невозможно оставить больше одного отзыва на произведение!"
                 )
-        return data
+        return attrs
 
 
 class CommentSerializer(ModelSerializer):
