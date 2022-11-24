@@ -114,8 +114,6 @@ class Review(models.Model):
             )
         ]
 
-    def __str__(self):
-        return f"{self.author} {self.text}"
 
     def __str__(self):
         return f"{self.text}"[:15]
