@@ -19,7 +19,7 @@ class Category(CreatedModel):
         verbose_name_plural = _("Категории")
 
     def __str__(self):
-        return self.slug, self.name
+        return self.slug
 
 
 class Genre(CreatedModel):
@@ -65,7 +65,7 @@ class Title(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.name}, {self.year}"
+        return {self.name}
 
 
 class GenreTitle(models.Model):
@@ -117,6 +117,9 @@ class Review(models.Model):
     def __str__(self):
         return f"{self.author} {self.text}"
 
+    def __str__(self):
+        return f"{self.text}"[:15]
+
 
 class Comment(models.Model):
     """Модель комментариев."""
@@ -137,4 +140,5 @@ class Comment(models.Model):
         verbose_name_plural = _("Коментарии")
 
     def __str__(self):
-        return f"{self.author} {self.text}"
+        return f"{self.text}"[:15]
+
