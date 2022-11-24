@@ -7,6 +7,7 @@ from rest_framework.serializers import (
     CharField,
     ChoiceField,
     CurrentUserDefault,
+    ModelSerializer,
     SerializerMethodField,
     ValidationError
 )
