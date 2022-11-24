@@ -13,7 +13,6 @@ from rest_framework.serializers import (
     SlugRelatedField,
     ValidationError,
 )
-from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
@@ -75,20 +74,6 @@ class UserTokenReceivingSerializer(ModelSerializer):
         fields = ("username", "confirmation_code")
 
 
-class ValueFromViewKeyWordArgumentsDefault:
-    """Класс подстановки значений из вьюхи."""
-
-    requires_context = True
-
-    def __init__(self, context_key):
-        self.key = context_key
-
-    def __call__(self, serializer_field):
-        return serializer_field.context.get("view").kwargs.get(self.key)
-
-    def __repr__(self):
-        return "%s()" % self.__class__.__name__
-
 
 class ReviewSerializer(ModelSerializer):
     """Сериализатор отзыва"""
@@ -98,12 +83,9 @@ class ReviewSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
-    # title = SlugRelatedField(
-    #     queryset=Title.objects.all(),
-    #     slug_field="title",
-    # )
-    title = HiddenField(
-        default=ValueFromViewKeyWordArgumentsDefault("title_id"),
+    title = SlugRelatedField(
+        read_only=True,
+        slug_field="id",
     )
 
     class Meta:
@@ -118,11 +100,18 @@ class ReviewSerializer(ModelSerializer):
             "score",
         )
         model = Review
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(), fields=("author", "title")
-            )
-        ]
+
+    def validate(self, data):
+        request = self.context['request']
+        if request.method == "POST":
+            if Review.objects.filter(
+                author=request.user,
+                title=request.parser_context['kwargs']['title_id']
+            ).exists():
+                raise ValidationError(
+                    'Невозможно оставить больше одного отзыва на произведение!'
+                )
+        return data
 
 
 class CommentSerializer(ModelSerializer):
@@ -133,12 +122,9 @@ class CommentSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
-    # review = SlugRelatedField(
-    #     read_only=True,
-    #     slug_field="review",
-    # )
-    review = HiddenField(
-        default=ValueFromViewKeyWordArgumentsDefault("review_id"),
+    review = SlugRelatedField(
+        read_only=True,
+        slug_field="id",
     )
 
     class Meta:
