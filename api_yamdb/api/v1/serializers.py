@@ -15,7 +15,7 @@ from rest_framework.serializers import (
     SerializerMethodField,
 )
 from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
@@ -94,10 +94,13 @@ class ReviewSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
+    # title = SlugRelatedField(
+    #     queryset=Title.objects.all(),
+    #     slug_field="title",
+    # )
     title = HiddenField(
         default=ValueFromViewKeyWordArgumentsDefault("title_id"),
     )
-    score = ChoiceField(choices=CHOICES)
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
@@ -125,6 +128,10 @@ class CommentSerializer(ModelSerializer):
         read_only=True,
         slug_field="username",
     )
+    # review = SlugRelatedField(
+    #     read_only=True,
+    #     slug_field="review",
+    # )
     review = HiddenField(
         default=ValueFromViewKeyWordArgumentsDefault("review_id"),
     )
