@@ -10,8 +10,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from users.models import User
 
-CHOICES = [(i, i) for i in range(1, 11)]
-
 
 class Category(CreatedModel):
     """Модель для Category. Наследуется из Core."""
@@ -84,16 +82,27 @@ class Review(models.Model):
     """Модель ревью."""
 
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="reviews"
+        User, on_delete=models.CASCADE, related_name="reviews",
     )
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name="reviews"
+        Title, on_delete=models.CASCADE, related_name="reviews",
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
         _("Дата создания отзыва"), auto_now_add=True, db_index=True
     )
-    score = models.IntegerField(default=0, choices=CHOICES)
+    score = models.PositiveSmallIntegerField(
+        default=0,
+        db_index=True,
+        validators=[
+            MaxValueValidator(
+                10, message=_("Максимальная оценка - 10")
+            ),
+            MinValueValidator(
+                1, message=_("Минимальная оценка - 1")
+            ),
+        ],
+    )
 
     class Meta:
         verbose_name = _("Отзыв")
@@ -104,6 +113,9 @@ class Review(models.Model):
                 fields=["title", "author"], name="unique_review_title"
             )
         ]
+    
+    def __str__(self):
+        return f"{self.author} {self.text}"
 
 
 class Comment(models.Model):
@@ -123,3 +135,6 @@ class Comment(models.Model):
     class Meta:
         verbose_name = _("Коментарий")
         verbose_name_plural = _("Коментарии")
+
+    def __str__(self):
+        return f"{self.author} {self.text}"
