@@ -1,5 +1,6 @@
 from django.contrib import admin
-from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import User
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -33,9 +34,9 @@ class ReviewAdmin(admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'review', 'author', 'pub_date', 'text')
-    search_fields = ('text', 'author', 'review')
-    list_filter = ('pub_date',)
+    list_display = ("id", "review", "author", "pub_date", "text")
+    search_fields = ("text", "author", "review")
+    list_filter = ("pub_date",)
 
 
 admin.site.register(Category, CategoryAdmin)
@@ -43,4 +44,4 @@ admin.site.register(Genre, GenreAdmin)
 admin.site.register(Title, TitleAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Comment, CommentAdmin)
-
+admin.site.register(User)

@@ -9,7 +9,8 @@ from rest_framework.serializers import (
     CurrentUserDefault,
     ModelSerializer,
     SerializerMethodField,
-    ValidationError
+    SlugRelatedField,
+    ValidationError,
 )
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
@@ -52,7 +53,7 @@ class UserSignupSerializer(ModelSerializer):
     def validate_username(self, attrs):
         """Метод валидации пользователя."""
 
-        if attrs.lower == "me":
+        if attrs.lower() == "me":
             raise ValidationError("Попробуй другой username")
         return attrs
 
@@ -206,66 +207,3 @@ class TitleSerializerCreate(TitleSerializer):
         model = Title
 
         ordering = ["-id"]
-
-
-class ReviewSerializer(ModelSerializer):
-    """Сериализатор отзыва"""
-
-    author = SlugRelatedField(
-        default=CurrentUserDefault(),
-        read_only=True,
-        slug_field="username",
-    )
-    title = SlugRelatedField(
-        read_only=True,
-        slug_field="name",
-    )
-
-    class Meta:
-        """Мета модель определяющая поля выдачи."""
-        fields = (
-            "id",
-            "author",
-            "title",
-            "text",
-            "pub_date",
-            "score",
-        )
-        model = Review
-
-    def validate(self, data):
-        request = self.context['request']
-        if request.method == "POST":
-            if Review.objects.filter(
-                author=request.user,
-                title=request.parser_context['kwargs']['title_id']
-            ).exists():
-                raise ValidationError(
-                    'Невозможно оставить больше одного отзыва на произведение!'
-                )
-        return data
-
-
-class CommentSerializer(ModelSerializer):
-    """Сериализатор комментария"""
-
-    author = SlugRelatedField(
-        default=CurrentUserDefault(),
-        read_only=True,
-        slug_field="username",
-    )
-    review = SlugRelatedField(
-        read_only=True,
-        slug_field="id",
-    )
-
-    class Meta:
-        """Мета модель определяющая поля выдачи."""
-        fields = (
-            "id",
-            "author",
-            "review",
-            "text",
-            "pub_date",
-        )
-        model = Comment
