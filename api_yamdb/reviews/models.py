@@ -2,9 +2,12 @@
 from datetime import datetime
 
 from core.models import CreatedModel
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+)
 from django.db import models
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from users.models import User
 
 CHOICES = [(i, i) for i in range(1, 11)]
@@ -88,13 +91,13 @@ class Review(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        _("Дата создания отзыва"), auto_now_add=True, db_index=True
+        "Дата создания отзыва", auto_now_add=True, db_index=True
     )
     score = models.IntegerField(default=0, choices=CHOICES)
 
     class Meta:
-        verbose_name = _("Отзыв")
-        verbose_name_plural = _("Отзывы")
+        verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"
         ordering = ("-pub_date", "score")
         constraints = [
             models.UniqueConstraint(
@@ -114,7 +117,7 @@ class Comment(models.Model):
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
-        _("Дата комментария к отзыву"), auto_now_add=True, db_index=True
+        "Дата комментария к отзыву", auto_now_add=True, db_index=True
     )
 
     class Meta:
