@@ -3,16 +3,15 @@
 """
 
 from django.db.models import Avg
-
 from rest_framework.serializers import (
-    ModelSerializer,
-    ValidationError,
     CharField,
-    SlugRelatedField,
+    ChoiceField,
     CurrentUserDefault,
     HiddenField,
-    ChoiceField,
+    ModelSerializer,
     SerializerMethodField,
+    SlugRelatedField,
+    ValidationError,
 )
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
@@ -21,8 +20,9 @@ from users.models import User
 
 class UserSerializer(ModelSerializer):
     """Сериализатор пользователя."""
+
     role = ChoiceField(choices=User.ROLES, default="user")
-    
+
     class Meta:
         """
         Мета модель определяющая поля выдачи.
@@ -38,12 +38,6 @@ class UserSerializer(ModelSerializer):
             "bio",
             "role",
         )
-        #if not User.is_admin or not User.is_moderator:
-        #    read_only_fields = ("role",)
-        
-        #def validate_role(self, request):
-        #    if not request.User.is_admin or not request.User.is_moderator:
-        #        raise ValidationError("Вы не можете сменить полномочия.")
 
 
 class UserSignupSerializer(ModelSerializer):

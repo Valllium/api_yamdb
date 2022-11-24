@@ -3,6 +3,7 @@
 """
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
@@ -37,8 +38,8 @@ from .serializers import (
     UserSignupSerializer,
     UserTokenReceivingSerializer,
 )
-from .viewsets import ListCreateDeleteViewSet
 from .token import sending_registration_code
+from .viewsets import ListCreateDeleteViewSet
 
 
 class UserViewSet(ModelViewSet):
@@ -69,24 +70,21 @@ class UserViewSet(ModelViewSet):
         serializer = UserSerializer(
             request.user, data=request.data, partial=True
         )
-        #serializer.is_valid(raise_exception=True)
-        if serializer.is_valid() and (request.user.role == "user" or request.user.role == "moderator"):
-            # if  serializer.validated_data.get("role"):
-            # if  serializer.data['role']:
-            if 'role' in serializer.data:
-                return Response("Не надо пытаться менять свою роль", status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid() and (
+            request.user.role == "user" or request.user.role == "moderator"
+        ):
+            if (
+                serializer.validated_data.get("role") == "user"
+                or serializer.validated_data.get("role") == "moderator"
+            ):
+                return Response(
+                    _("Не надо пытаться менять свою роль"),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
             serializer.save(role=request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        
-        
-        #if not serializer.is_valid():
-            #raise ValueError("Не надо пытаться менять свою роль")
-        #    return Response("Не надо пытаться менять свою роль", status=status.HTTP_400_BAD_REQUEST)
-        #serializer.save()
-        #return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CreateUserAPIView(APIView):
@@ -98,13 +96,13 @@ class CreateUserAPIView(APIView):
     def post(self, request):
         """Метод проверки данных и генерации писем для активации."""
         serializer = UserSignupSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            sending_registration_code(serializer)
-            return Response(
-                serializer.validated_data,
-                status=status.HTTP_200_OK,
-            )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        sending_registration_code(serializer)
+        return Response(
+            serializer.validated_data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class GetTokenAPIView(APIView):
