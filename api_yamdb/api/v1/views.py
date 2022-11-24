@@ -3,6 +3,7 @@
 """
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
@@ -11,6 +12,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,9 +24,8 @@ from users.models import User
 from .filters import TitleFilter
 from .permission import (
     IsAdministrator,
-    IsAdminOrReadOnly,
+    IsAdminOnly,
     IsAuthorOrIsStaffPermission,
-    ReadOnly,
 )
 from .serializers import (
     CategorySerializer,
@@ -37,8 +38,8 @@ from .serializers import (
     UserSignupSerializer,
     UserTokenReceivingSerializer,
 )
-from .viewsets import ListCreateDeleteViewSet
 from .token import sending_registration_code
+from .viewsets import ListCreateDeleteViewSet
 
 
 class UserViewSet(ModelViewSet):
@@ -69,9 +70,21 @@ class UserViewSet(ModelViewSet):
         serializer = UserSerializer(
             request.user, data=request.data, partial=True
         )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=request.user.role)
-        return Response(serializer.data)
+        if serializer.is_valid() and (
+            request.user.role == "user" or request.user.role == "moderator"
+        ):
+            if (
+                serializer.validated_data.get("role") == "user"
+                or serializer.validated_data.get("role") == "moderator"
+            ):
+                return Response(
+                    _("Не надо пытаться менять свою роль"),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            serializer.save(role=request.user.role)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CreateUserAPIView(APIView):
@@ -83,13 +96,13 @@ class CreateUserAPIView(APIView):
     def post(self, request):
         """Метод проверки данных и генерации писем для активации."""
         serializer = UserSignupSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            sending_registration_code(serializer)
-            return Response(
-                serializer.validated_data,
-                status=status.HTTP_200_OK,
-            )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        sending_registration_code(serializer)
+        return Response(
+            serializer.validated_data,
+            status=status.HTTP_200_OK,
+        )
 
 
 class GetTokenAPIView(APIView):
@@ -119,7 +132,10 @@ class ReviewViewSet(ModelViewSet):
     """Класс представления ревью."""
 
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorOrIsStaffPermission,)
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        IsAuthorOrIsStaffPermission,
+    )
 
     def get_queryset(self):
         """Метод обработки запроса."""
@@ -138,7 +154,10 @@ class CommentViewSet(ModelViewSet):
     """Класс представления комментария."""
 
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrIsStaffPermission,)
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        IsAuthorOrIsStaffPermission,
+    )
     pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
@@ -162,7 +181,10 @@ class GenreViewSet(ListCreateDeleteViewSet):
     serializer_class = GenreSerializer
     lookup_field = "slug"
     pagination_class = LimitOffsetPagination
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        IsAdminOnly,
+    )
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
 
@@ -177,14 +199,20 @@ class CategoryViewSet(ListCreateDeleteViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
-    permission_classes = [IsAuthenticated & IsAdministrator | ReadOnly]
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        IsAdminOnly,
+    )
 
 
 class TitleViewSet(ModelViewSet):
     """Отображение действий с произведениями"""
 
     http_method_names = ["get", "post", "delete", "patch"]
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        IsAdminOnly,
+    )
     queryset = Title.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
