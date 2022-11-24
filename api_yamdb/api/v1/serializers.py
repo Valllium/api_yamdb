@@ -52,7 +52,7 @@ class UserSignupSerializer(ModelSerializer):
     def validate_username(self, attrs):
         """Метод валидации пользователя."""
 
-        if attrs == "me":
+        if attrs.lower == "me":
             raise ValidationError("Попробуй другой username")
         return attrs
 
