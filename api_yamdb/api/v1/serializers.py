@@ -10,11 +10,9 @@ from rest_framework.serializers import (
     CharField,
     SlugRelatedField,
     CurrentUserDefault,
-    HiddenField,
-    ChoiceField,
     SerializerMethodField,
+    ValidationError
 )
-from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
@@ -70,82 +68,6 @@ class UserTokenReceivingSerializer(ModelSerializer):
         """Мета модель определяющая поля выдачи."""
         model = User
         fields = ("username", "confirmation_code")
-
-
-class ValueFromViewKeyWordArgumentsDefault:
-    """Класс подстановки значений из вьюхи."""
-    requires_context = True
-
-    def __init__(self, context_key):
-        self.key = context_key
-
-    def __call__(self, serializer_field):
-        return serializer_field.context.get("view").kwargs.get(self.key)
-
-    def __repr__(self):
-        return "%s()" % self.__class__.__name__
-
-
-class ReviewSerializer(ModelSerializer):
-    """Сериализатор отзыва"""
-
-    author = SlugRelatedField(
-        default=CurrentUserDefault(),
-        read_only=True,
-        slug_field="username",
-    )
-    # title = SlugRelatedField(
-    #     queryset=Title.objects.all(),
-    #     slug_field="title",
-    # )
-    title = HiddenField(
-        default=ValueFromViewKeyWordArgumentsDefault("title_id"),
-    )
-
-    class Meta:
-        """Мета модель определяющая поля выдачи."""
-        fields = (
-            "id",
-            "author",
-            "title",
-            "text",
-            "pub_date",
-            "score",
-        )
-        model = Review
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(), fields=("author", "title")
-            )
-        ]
-
-
-class CommentSerializer(ModelSerializer):
-    """Сериализатор комментария"""
-
-    author = SlugRelatedField(
-        default=CurrentUserDefault(),
-        read_only=True,
-        slug_field="username",
-    )
-    # review = SlugRelatedField(
-    #     read_only=True,
-    #     slug_field="review",
-    # )
-    review = HiddenField(
-        default=ValueFromViewKeyWordArgumentsDefault("review_id"),
-    )
-
-    class Meta:
-        """Мета модель определяющая поля выдачи."""
-        fields = (
-            "id",
-            "author",
-            "review",
-            "text",
-            "pub_date",
-        )
-        model = Comment
 
 
 class GenreSerializer(ModelSerializer):
@@ -215,3 +137,66 @@ class TitleSerializerCreate(TitleSerializer):
         model = Title
 
         ordering = ["-id"]
+
+
+class ReviewSerializer(ModelSerializer):
+    """Сериализатор отзыва"""
+
+    author = SlugRelatedField(
+        default=CurrentUserDefault(),
+        read_only=True,
+        slug_field="username",
+    )
+    title = SlugRelatedField(
+        read_only=True,
+        slug_field="name",
+    )
+
+    class Meta:
+        """Мета модель определяющая поля выдачи."""
+        fields = (
+            "id",
+            "author",
+            "title",
+            "text",
+            "pub_date",
+            "score",
+        )
+        model = Review
+
+    def validate(self, data):
+        request = self.context['request']
+        if request.method == "POST":
+            if Review.objects.filter(
+                author=request.user,
+                title=request.parser_context['kwargs']['title_id']
+            ).exists():
+                raise ValidationError(
+                    'Невозможно оставить больше одного отзыва на произведение!'
+                )
+        return data
+
+
+class CommentSerializer(ModelSerializer):
+    """Сериализатор комментария"""
+
+    author = SlugRelatedField(
+        default=CurrentUserDefault(),
+        read_only=True,
+        slug_field="username",
+    )
+    review = SlugRelatedField(
+        read_only=True,
+        slug_field="id",
+    )
+
+    class Meta:
+        """Мета модель определяющая поля выдачи."""
+        fields = (
+            "id",
+            "author",
+            "review",
+            "text",
+            "pub_date",
+        )
+        model = Comment
