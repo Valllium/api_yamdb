@@ -114,7 +114,10 @@ class Review(models.Model):
             )
         ]
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 242e640 (Админ панель)
     def __str__(self):
         return f"{self.text}"[:15]
 
