@@ -149,7 +149,7 @@ class ReviewSerializer(ModelSerializer):
     )
     title = SlugRelatedField(
         read_only=True,
-        slug_field="name",
+        slug_field="id",
     )
 
     class Meta:
