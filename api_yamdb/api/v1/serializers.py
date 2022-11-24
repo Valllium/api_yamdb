@@ -3,16 +3,15 @@
 """
 
 from django.db.models import Avg
-
 from rest_framework.serializers import (
-    ModelSerializer,
-    ValidationError,
     CharField,
-    SlugRelatedField,
+    ChoiceField,
     CurrentUserDefault,
     HiddenField,
-    ChoiceField,
+    ModelSerializer,
     SerializerMethodField,
+    SlugRelatedField,
+    ValidationError,
 )
 from rest_framework.validators import UniqueTogetherValidator
 from reviews.models import CHOICES, Category, Comment, Genre, Review, Title
@@ -22,11 +21,14 @@ from users.models import User
 class UserSerializer(ModelSerializer):
     """Сериализатор пользователя."""
 
+    role = ChoiceField(choices=User.ROLES, default="user")
+
     class Meta:
         """
         Мета модель определяющая поля выдачи.
         Определяет доступ к полю role.
         """
+
         model = User
         fields = (
             "username",
@@ -36,8 +38,6 @@ class UserSerializer(ModelSerializer):
             "bio",
             "role",
         )
-        if not User.is_admin or not User.is_moderator:
-            read_only_fields = ("role",)
 
 
 class UserSignupSerializer(ModelSerializer):
@@ -55,7 +55,7 @@ class UserSignupSerializer(ModelSerializer):
     def validate_username(self, attrs):
         """Метод валидации пользователя."""
 
-        if attrs == "me":
+        if attrs.lower() == "me":
             raise ValidationError("Попробуй другой username")
         return attrs
 
@@ -68,12 +68,14 @@ class UserTokenReceivingSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         model = User
         fields = ("username", "confirmation_code")
 
 
 class ValueFromViewKeyWordArgumentsDefault:
     """Класс подстановки значений из вьюхи."""
+
     requires_context = True
 
     def __init__(self, context_key):
@@ -101,6 +103,7 @@ class ReviewSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "author",
@@ -131,6 +134,7 @@ class CommentSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "author",
@@ -146,6 +150,7 @@ class GenreSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = ("name", "slug")
         model = Genre
 
@@ -155,6 +160,7 @@ class CategorySerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = ("name", "slug")
         model = Category
 
@@ -168,6 +174,7 @@ class TitleSerializer(ModelSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "name",
@@ -197,6 +204,7 @@ class TitleSerializerCreate(TitleSerializer):
 
     class Meta:
         """Мета модель определяющая поля выдачи."""
+
         fields = (
             "id",
             "name",
