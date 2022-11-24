@@ -2,10 +2,7 @@
 from datetime import datetime
 
 from core.models import CreatedModel
-from django.core.validators import (
-    MaxValueValidator,
-    MinValueValidator,
-)
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from users.models import User
@@ -82,10 +79,14 @@ class Review(models.Model):
     """Модель ревью."""
 
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="reviews",
+        User,
+        on_delete=models.CASCADE,
+        related_name="reviews",
     )
     title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, related_name="reviews",
+        Title,
+        on_delete=models.CASCADE,
+        related_name="reviews",
     )
     text = models.TextField()
     pub_date = models.DateTimeField(
@@ -95,12 +96,8 @@ class Review(models.Model):
         default=0,
         db_index=True,
         validators=[
-            MaxValueValidator(
-                10, message=_("Максимальная оценка - 10")
-            ),
-            MinValueValidator(
-                1, message=_("Минимальная оценка - 1")
-            ),
+            MaxValueValidator(10, message=_("Максимальная оценка - 10")),
+            MinValueValidator(1, message=_("Минимальная оценка - 1")),
         ],
     )
 
@@ -113,7 +110,7 @@ class Review(models.Model):
                 fields=["title", "author"], name="unique_review_title"
             )
         ]
-    
+
     def __str__(self):
         return f"{self.author} {self.text}"
 
@@ -141,4 +138,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.text}"[:15]
-

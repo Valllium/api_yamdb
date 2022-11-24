@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 @dataclass(frozen=True)
 class UserRoles:
     """Класс словаря ролей пользователей."""
+
     USER: str = "user"
     MODERATOR: str = "moderator"
     ADMIN: str = "admin"
@@ -30,7 +31,9 @@ class User(AbstractUser):
         null=False,
     )
     bio = models.TextField(_("Биография"), max_length=256, blank=True)
-    role = models.CharField(_("Роль пользователя"), max_length=16, choices=ROLES, default="user")
+    role = models.CharField(
+        _("Роль пользователя"), max_length=16, choices=ROLES, default="user"
+    )
 
     REQUIRED_FIELDS = ("email",)
 
